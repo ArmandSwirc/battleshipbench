@@ -17,13 +17,8 @@
 
 | # | Model | Score | Avg shots | Boards | Auto-moves | Replay |
 |--:|---|--:|--:|--:|--:|---|
-| 1 | unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M | **66.3** | 45 | 3 | 0 | [boards](results/local_unsloth_Qwen3.6-35B-A3B-GGUF_UD-Q4_K_M/overview.svg) |
-| 2 | z-ai/glm-5.3-flash | **53** | 56 | 3 | 6 | [boards](results/openrouter_z-ai_glm-5.3-flash/overview.svg) |
-| 3 | deepseek-flash | **52.2** | 56.7 | 3 | 0 | [boards](results/deepseek_deepseek-flash/overview.svg) |
-| 4 | openai/gpt-6-luna | **50.2** | 58.3 | 3 | 0 | [boards](results/openrouter_openai_gpt-6-luna/overview.svg) |
-| 5 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |  |
-| 6 | laya-multilingual | **20.5** | 83 | 3 | 0 | [boards](results/unsloth-decision_laya-multilingual/overview.svg) |
-| 7 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |  |
+| 1 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |  |
+| 2 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |  |
 
 </details>
 
@@ -57,7 +52,12 @@ score = 100 × (100 − average shots to sink the fleet) / 83
 
 Invalid moves (off-board, already-fired cell, no JSON) get two retries with feedback; after that a random *auto-move* is played and counted. Bots (🤖) are the yardstick.
 
-Every model gets the same helper prompt: the rules, a short hunt/target strategy, and a board where finished ships are marked `S`, open hits `X`, plus the list of unresolved hits and the smallest remaining ship. Thinking is capped at 5000 tokens per move, the same for every model, only as a guard against endless loops (a cut-off model must answer from what it has, and a repetition detector stops looping earlier).
+**Strategy first, then complete freedom** (same idea as the arena's free play). Every model gets the same two phases:
+
+1. **Strategy:** before the first shot it writes its own game plan (how it searches, how it follows up a hit). The plan is fixed for the whole run and shown back on every turn of every board. Ship placement is skipped: the boards are fixed.
+2. **Play:** each shot is the model's own call. The prompt holds only the rules, its own strategy and the board (finished ships `S`, open hits `X`, the unresolved hits, the smallest remaining ship and the list of cells already fired). No steps, no modes, no tips, and no thinking cap.
+
+Each run saves the strategy and the reasoning of every shot in `results/<model>/strategy.md`.
 
 ### 🗺️ How the boards are made: difficult, but realistic
 

@@ -107,32 +107,48 @@ async function playBot(fn, seed) {
 }
 
 // ---- model-speler (via server.mjs) ----
-const THINK = Number(process.env.BENCH_THINK ?? 5000); // denk-tokens per schot
-const SYSTEM = `You play Battleship on a 10x10 board (columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight (horizontal or vertical), never overlap, and may touch each other. Fire one shot per turn at a cell not yet fired at. Fewer shots is better.
+const THINK = Number(process.env.BENCH_THINK ?? 0); // denk-tokens per aanroep; 0 = onbeperkt (vrij spel: geen budget, geen lusbewaking, Stop breekt af)
+// Twee fasen, zoals in de 1v1 Vrij spel: eerst schrijft het model één keer zijn eigen strategie (staat daarna vast voor alle borden),
+// daarna speelt het elk bord in volledige vrijheid, zonder stappen, modi of tips van de benchmark. Plaatsing vervalt: de borden liggen vast.
+const RULES = `GAME: Battleship, solo. Board 10x10. Columns A-J (left to right), rows 1-10 (top to bottom). A cell is written like "E5" (column E, row 5).
+A hidden fleet of 5 ships is placed on the board: straight lines, horizontal or vertical (never diagonal), fully on the board, never overlapping (ships MAY touch each other side by side):
+  Carrier 5 cells, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2.
+You fire one shot per turn at a cell you have not fired at yet. A shot is a miss, a hit, or a hit that sinks a ship (you are told which ship). The goal is to sink the whole fleet in as few shots as possible. Your score is the number of shots you need.`;
+const OUTPUT = `OUTPUT: your final answer must be exactly one JSON object and nothing else (no markdown fences, no text before or after). Take all the time and space you need to think; there is no limit on your thinking or on the length of your answer.`;
+const STRATEGY_SYSTEM = `${RULES}
 
-Board legend: . unknown, o miss, X hit on a ship that is NOT sunk yet, S hit on a ship that IS sunk (finished, ignore it, but an X next to an S can belong to another ship). Each turn you also get the unresolved hits (all X cells), the remaining ships and the smallest remaining ship, so never spend thinking on working out which hit belongs to which ship.
+PHASE: STRATEGY. Before the first shot you write your own game plan. You are completely free: nobody prescribes how to play. Work out what you believe is the strongest way to find and sink the fleet in the fewest shots, then commit to it. The plan is fixed: it is shown back to you on every turn of every board, and you cannot change it later, so write it so that future-you can follow it without any other help. You will not see the fleet in advance and you do not place it; the boards are fixed.
+Cover the two parts of the game: (1) how you search while nothing is hit, (2) how you follow up on a hit until the ship is sunk. Add anything else you find valuable (parity or spacing patterns, using the remaining ship lengths, how to handle several open hits, when to deviate, and so on).
 
-Work through these steps every turn, in order, and keep your thinking short:
+${OUTPUT}
+Schema: {"name":"a short catchy name for your strategy","strategy":"your complete plan, as long as it needs to be, concrete and actionable"}`;
+const TURN_SYSTEM = (strategy) => `${RULES}
 
-STEP 1 - Pick the mode. Read the "Unresolved hits" line. If it lists any cell: TARGET mode. If it says none: HUNT mode. Write the mode down and go to its step.
+PHASE: SHOOTING. Every turn you receive the board of your previous shots and fire ONE new cell. The hidden fleet stays hidden; you only see the results of your own shots.
 
-STEP 2a - TARGET mode (finish the open ship, never wander off):
-  - Two or more unresolved hits in a straight line: the ship runs along that line. Fire the next "." cell at either end of the line. If both ends are blocked (miss, S or edge), the hits belong to different ships: treat each hit on its own.
-  - A single unresolved hit: fire any "." neighbour of it (up, down, left or right).
-  - Do not leave TARGET mode until Unresolved hits is empty.
+Board legend: . unknown, o miss, X hit on a ship that is not sunk yet, S hit on a ship that is sunk (finished, but an X next to an S can belong to another ship). You may only fire at a cell shown as "."; every cell you already fired at is listed again each turn.
 
-STEP 2b - HUNT mode. This is a quick decision, not an analysis: do NOT check cells one by one.
-  - Number the columns A=1 ... J=10. If the smallest remaining ship is 2, fire only at "." cells where column number + row number is even. If it is 3 or more, fire only at "." cells where column number + row number is divisible by 3 (every such ship covers one of those cells).
-  - Name one such cell near the centre right away and fire it. Only if that cell is not ".", take the nearest cell that fits the rule.
+Before the first shot you wrote this strategy for yourself:
+--- YOUR STRATEGY ---
+${strategy}
+--- END ---
+You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only the number of shots counts.
 
-STEP 3 - Check and answer. The cell must be "." (never o, X or S). Then reply with the JSON.
-
-Thinking: your budget is ${THINK} tokens per shot. Decide quickly, and always keep a current best move in mind. If the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object: {"move":"E5","why":"one short sentence on why this cell"}`;
+${OUTPUT}
+Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
+const FALLBACK_STRATEGY = "No own strategy was received. Play sensibly: search with a checkerboard pattern, follow a hit until the ship is sunk and use the lengths of the ships that are still afloat.";
+const validStrategy = (j) => { const s = String(j?.strategy ?? "").trim(); return s.length >= 40 ? { name: String(j.name ?? "").trim().slice(0, 60), strategy: s.slice(0, 20000) } : null; };
+// eerste JSON-object in een antwoord (ook met geneste accolades in de tekst)
+function parseJSON(text) {
+  const s = String(text ?? "").replace(/```(?:json)?/g, ""), a = s.indexOf("{");
+  for (let b = s.lastIndexOf("}"); a >= 0 && b > a; b = s.lastIndexOf("}", b - 1)) { try { return JSON.parse(s.slice(a, b + 1)); } catch {} }
+  return null;
+}
 const render = (b) => {
-  const rows = ["   " + COLS.split("").join(" ")], open_ = [], sunkCell = (y, x) => b.grid[y][x] >= 0 && b.ships[b.grid[y][x]].hits === b.ships[b.grid[y][x]].len;
-  for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s, x) => { if (!s) return "."; if (s.result === "miss") return "o"; if (sunkCell(y, x)) return "S"; open_.push(cell(y, x)); return "X"; }).join(" "));
+  const rows = ["   " + COLS.split("").join(" ")], open_ = [], fired = [], sunkCell = (y, x) => b.grid[y][x] >= 0 && b.ships[b.grid[y][x]].hits === b.ships[b.grid[y][x]].len;
+  for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s, x) => { if (!s) return "."; fired.push(cell(y, x)); if (s.result === "miss") return "o"; if (sunkCell(y, x)) return "S"; open_.push(cell(y, x)); return "X"; }).join(" "));
   const sunk = b.ships.filter((s) => s.hits === s.len).map((s) => s.name);
-  return `Board (. unknown, o miss, X hit on a ship not yet sunk, S hit on a sunk ship):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nUnresolved hits: ${open_.join(", ") || "none (HUNT mode)"}. Smallest remaining ship: ${Math.min(...b.ships.filter((s) => s.hits < s.len).map((s) => s.len))}.\nShots fired: ${b.count}. Your move, JSON only.`;
+  return `Board (. unknown, o miss, X hit on a ship not yet sunk, S hit on a sunk ship):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nUnresolved hits: ${open_.join(", ") || "none"}. Smallest remaining ship: ${Math.min(...b.ships.filter((s) => s.hits < s.len).map((s) => s.len))}.\nAlready fired (never fire these again): ${fired.join(", ") || "none"}.\nShots fired: ${b.count}. Your move: a cell that is "." on the board. JSON only.`;
 };
 let lastAsk = { cut: false, tok: 0, ms: 0 };
 // Decision-modellen (provider met "decision": true, bv. Laya via Unsloth /v1/systemone) kiezen i.p.v. praten, zoals zo'n model bedoeld is:
@@ -177,9 +193,9 @@ async function decide(model, b) {
   if (!mv) throw new Error("no valid choice");
   return { mv, why: `${v.mode}: ${best.k} scores ${Math.round(100 * best.p)}% yes of ${cands.length} open cells`, ms: Date.now() - t0 };
 }
-async function ask(model, user) {
+async function ask(model, system, user) {
   LIVE.think = ""; LIVE.thinkChars = 0; LIVE.thinkTok = 0; LIVE.thinkMax = THINK; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
-  const body = { model, think_budget: THINK, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }] };
+  const body = { model, think_budget: THINK, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: system }, { role: "user", content: user }] };
   const res = await fetch(`${SERVER}/api/chat`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const dec = new TextDecoder(); let buf = "", out = "", cut = false;
@@ -199,21 +215,36 @@ async function ask(model, user) {
   lastAsk = { cut, tok: LIVE.thinkTok, ms: Date.now() - LIVE.askStart };
   return out;
 }
-async function askRetry(model, user) {
-  for (let n = 1; ; n++) try { return await ask(model, user); } catch (e) { if (n >= 5) throw e; await new Promise((r) => setTimeout(r, 1500 * n)); }
+async function askRetry(model, system, user) {
+  for (let n = 1; ; n++) try { return await ask(model, system, user); } catch (e) { if (n >= 5) throw e; await new Promise((r) => setTimeout(r, 1500 * n)); }
+}
+let STRATEGY = { name: "", text: FALLBACK_STRATEGY }; // per run: één strategie voor alle borden
+async function writeStrategy(model) {
+  Object.assign(LIVE, { phase: "strategy", seed: null, turn: 0, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: Array.from({ length: SIZE }, () => Array(SIZE).fill(-1)), fleet: FLEET.map(([name, len]) => ({ name, len })), fallbacks: 0, sunk: [], strategy: "", strategyName: "", status: "thinking" }); flush(true);
+  STRATEGY = { name: "", text: FALLBACK_STRATEGY, own: false };
+  if (DECISION.has(model)) { LIVE.strategy = "Decision model: it answers yes/no questions per cell and does not write a plan."; LIVE.phase = null; return; }
+  let extra = "";
+  for (let t = 0; t < 3; t++) {
+    let text = ""; try { text = await askRetry(model, STRATEGY_SYSTEM, "Write your strategy now. JSON only." + extra); } catch (e) { console.log(`\n${e.message}`); break; }
+    const v = validStrategy(parseJSON(text));
+    if (v) { STRATEGY = { name: v.name, text: v.strategy, own: true }; break; }
+    extra = '\n\nINVALID: answer with one JSON object {"name":"...","strategy":"..."} where "strategy" is a concrete plan of at least a few sentences.';
+  }
+  LIVE.strategy = STRATEGY.text; LIVE.strategyName = STRATEGY.name || (STRATEGY.own ? "" : "no answer, standard plan"); LIVE.phase = null; LIVE.think = ""; flush(true);
+  console.log(`strategy: ${STRATEGY.name || (STRATEGY.own ? "own plan" : "no valid answer, standard plan")}`);
 }
 async function playModel(model, seed) {
   const b = newBoard(seed), rand = rng(seed + 7); let fallbacks = 0;
-  Object.assign(LIVE, { seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
+  Object.assign(LIVE, { phase: null, seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
   while (!done(b) && b.count < MAX_SHOTS) {
     let mv = null, extra = "", tries = 0, ask1 = null, fb = false, why = ""; LIVE.turn = b.count + 1;
     for (let t = 0; t < 3 && !mv; t++) {
       tries++;
       if (DECISION.has(model)) { try { const d = await decide(model, b); mv = d.mv; why = d.why; ask1 = { cut: false, tok: 0, ms: d.ms }; } catch (e) { console.log(`\n${e.message}`); } continue; }
-      let text = ""; try { text = await askRetry(model, render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
-      const m = /\{[^{}]*\}/.exec(text.replace(/```(?:json)?/g, "")); let j = null; try { j = m && JSON.parse(m[0]); } catch {}
+      let text = ""; try { text = await askRetry(model, TURN_SYSTEM(STRATEGY.text), render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
+      const j = parseJSON(text);
       const rc = parse(j?.move);
-      if (rc && !b.shots[rc[0]][rc[1]]) { mv = rc; why = String(j?.why ?? "").slice(0, 240); } else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
+      if (rc && !b.shots[rc[0]][rc[1]]) { mv = rc; why = String(j?.why ?? "").slice(0, 600); } else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
     }
     if (!mv) { mv = botRandom(b, rand); fallbacks++; fb = true; }
     const fr = fire(b, ...mv);
@@ -224,7 +255,7 @@ async function playModel(model, seed) {
     LIVE.status = "firing"; flush(true);
     process.stdout.write(done(b) ? "!" : b.shots[mv[0]][mv[1]].result === "miss" ? "." : "X");
   }
-  try { saveBoard({ model, seed, ships: b.ships, shots: LIVE.shots, fallbacks, finished: done(b), startedAt: LIVE.startedAt }); } catch (e) { console.log(`\nresults: ${e.message}`); }
+  try { saveBoard({ model, seed, ships: b.ships, shots: LIVE.shots, fallbacks, finished: done(b), startedAt: LIVE.startedAt, strategy: STRATEGY.own ? STRATEGY.text : "", strategyName: STRATEGY.name }); } catch (e) { console.log(`\nresults: ${e.message}`); }
   console.log(` board ${seed}: ${b.count} shots${done(b) ? "" : " (not finished)"} · ${fallbacks} auto-moves`);
   return { shots: done(b) ? b.count : MAX_SHOTS, fallbacks };
 }
@@ -232,9 +263,10 @@ async function playModel(model, seed) {
 // score 0-100: 100 = perfect (17 schoten), 0 = 100 schoten (of niet uitgespeeld)
 const score = (avg) => Math.max(0, Math.round((100 * (MAX_SHOTS - avg)) / (MAX_SHOTS - MIN_SHOTS) * 10) / 10);
 
-async function bench(name, fn, boards) {
+async function bench(name, fn, boards, prep) {
   const seeds = SEEDS.slice(0, boards), res = [];
-  Object.assign(LIVE, { name, boards: seeds.length, results: [], startedAt: new Date().toISOString(), status: "starting" });
+  Object.assign(LIVE, { name, boards: seeds.length, results: [], startedAt: new Date().toISOString(), status: "starting", phase: null, strategy: "", strategyName: "" });
+  if (prep) await prep();
   for (const [i, s] of seeds.entries()) {
     LIVE.boardIdx = i + 1; const r = await fn(s); res.push(r);
     LIVE.results.push({ seed: s, shots: r.shots, fallbacks: r.fallbacks }); flush(true);
@@ -260,7 +292,7 @@ function readme() {
     const o = best.get(r.name); if (!o || r.ts > o.ts) best.set(r.name, r);
   }
   const g = [...best.values()].sort((a, b) => b.score - a.score);
-  const ROOT = fileURLToPath(new URL("./", import.meta.url)), replay = (n) => (existsSync(`${ROOT}results/${slug(n)}/overview.svg`) ? `[boards](results/${slug(n)}/overview.svg)` : "");
+  const ROOT = fileURLToPath(new URL("./", import.meta.url)), replay = (n) => (existsSync(`${ROOT}results/${slug(n)}/overview.svg`) ? `[boards](results/${slug(n)}/overview.svg)${existsSync(`${ROOT}results/${slug(n)}/strategy.md`) ? ` · [strategy & shots](results/${slug(n)}/strategy.md)` : ""}` : "");
   writeFileSync(ROOT + "assets/leaderboard-gauntlet.svg", gauntletSvg(g));
   const gauntlet = ["| # | Model | Score | Avg shots | Boards | Auto-moves | Replay |", "|--:|---|--:|--:|--:|--:|---|",
     ...g.map((r, i) => `| ${i + 1} | ${r.bot ? "🤖 " : ""}${r.name.replace(/^[^/]+\//, "")} | **${r.score}** | ${r.avgShots} | ${r.boards} | ${r.fallbacks} | ${replay(r.name)} |`)].join("\n");
@@ -299,7 +331,7 @@ if (cmd === "bots") {
   await bench("Random bot", (s) => playBot(botRandom, s), GAUNTLET);
   await bench("Probability bot", (s) => playBot(botProb, s), GAUNTLET);
   readme();
-} else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards); readme(); try { console.log(publish(`results: ${model}`)); } catch (e) { console.log(`publish failed: ${e.message.split("\n")[0]}`); } }
+} else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards, () => writeStrategy(model)); readme(); try { console.log(publish(`results: ${model}`)); } catch (e) { console.log(`publish failed: ${e.message.split("\n")[0]}`); } }
 else if (cmd === "boards") await genBoards();
 else if (cmd === "readme") readme();
 else console.log("usage: node bench.mjs boards | bots | run <provider/model> [--boards N] [--slot a|b] | readme");

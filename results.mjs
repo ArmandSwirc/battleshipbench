@@ -50,15 +50,23 @@ export function renderOverview(run) {
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${y}" width="${W}" height="${y}"><style>${STYLE}</style><rect width="${W}" height="${y}" fill="var(--page)"/>${head}${body}</svg>\n`;
 }
 
-// board = { seed, model, ships:[{name,len,cells}], shots:[{cell,result}], finished, fallbacks, startedAt }
+// board = { seed, model, ships:[{name,len,cells}], shots:[{cell,result,why}], finished, fallbacks, startedAt, strategy, strategyName }
+// Also writes strategy.md: the model's own plan (written once per run, before the first board) and the reasoning of every shot per board.
+function strategyMd(run) {
+  let md = `# ${run.model}\n\n**Strategy${run.strategyName ? `: ${run.strategyName}` : ""}**\n\n${quote(run.strategy)}\n\n`;
+  for (const b of [...run.boards].sort((a, c) => a.seed - c.seed)) md += `## Board ${b.seed} · ${b.shots} shots${b.finished ? "" : " (not finished)"}${b.fallbacks ? ` · ${b.fallbacks} auto-moves` : ""}\n\n| # | Cell | Result | Reasoning |\n|---|---|---|---|\n` + b.sequence.map((q) => `| ${q.n} | ${q.cell} | ${q.result} | ${cellMd(q.why)} |`).join("\n") + "\n\n";
+  return md;
+}
 export function saveBoard(board) {
   const dir = DIR + slug(board.model) + "/"; mkdirSync(dir, { recursive: true });
   const f = dir + "run.json", run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: board.model, kind: "gauntlet", startedAt: board.startedAt, boards: [] };
-  const rec = { seed: board.seed, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
+  const rec = { seed: board.seed, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result, ...(s.why ? { why: s.why } : {}) })) };
+  if (board.strategy) { run.strategy = board.strategy; run.strategyName = board.strategyName ?? ""; }
   const i = run.boards.findIndex((b) => b.seed === board.seed);
   if (i >= 0) run.boards[i] = rec; else run.boards.push(rec);
   writeFileSync(f, JSON.stringify(run, null, 1));
   writeFileSync(dir + "overview.svg", renderOverview(run));
+  if (run.strategy) writeFileSync(dir + "strategy.md", strategyMd(run));
 }
 
 // 1v1 game -> results/arena/<model A>_vs_<model B>/ { run.json, overview.svg, games.md }, same files as a bench run plus strategy and reasoning per shot.

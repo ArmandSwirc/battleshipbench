@@ -297,7 +297,7 @@ async function handle(req, res) {
         for await (const chunk of up2.src ?? up2.body) { res.write(chunk); feed(st2, chunk); }
       }
       const answer = (st2 ?? st).content, parsed = firstJSON(answer);
-      logCall({ ts: new Date().toISOString(), model: ref, phase: String(body.messages[0]?.content).includes("PHASE: PLACEMENT") ? "plaatsing" : "schot", status: up.status, ms: Date.now() - t0, think_tokens: st.chunks, cut: st.why || null, aborted: gone, json_ok: !!parsed, move: parsed?.move ?? null, answer: answer.slice(0, 1500), think: st.think.slice(0, 20000) });
+      logCall({ ts: new Date().toISOString(), model: ref, phase: String(body.messages[0]?.content).includes("PHASE: PLACEMENT") ? "plaatsing" : String(body.messages[0]?.content).includes("PHASE: STRATEGY") ? "strategie" : "schot", status: up.status, ms: Date.now() - t0, think_tokens: st.chunks, cut: st.why || null, aborted: gone, json_ok: !!parsed, move: parsed?.move ?? null, answer: answer.slice(0, 1500), think: st.think.slice(0, 20000) });
       res.end();
     } catch (e) {
       if (ctl.signal.aborted) return;

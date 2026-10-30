@@ -65,7 +65,10 @@ main.two{grid-template-columns:repeat(auto-fit,minmax(340px,480px))}
 <nav><a href="/">← 1v1 arena</a></nav></header>
 <div class="tabs" id="tabs" role="toolbar" aria-label="Open benchmarks"></div>
 <main id="main" class="one"></main>
-<div class="about"><section class="card"><details><summary>How the boards are made</summary>
+<div class="about"><section class="card"><details><summary>How the models play</summary>
+<p><b>Strategy first.</b> Before the first shot each model writes its own game plan (how it searches, how it follows up a hit). It is fixed and shown back on every turn of every board.</p>
+<p><b>Then complete freedom.</b> No steps, no modes, no tips and no thinking cap: the model decides every shot itself. Ship placement is skipped, the boards are fixed.</p></details>
+<details style="margin-top:10px"><summary>How the boards are made</summary>
 <p><b>Fixed &amp; shared.</b> All models play the same first 3 boards of <code>boards.json</code>, so scores are comparable and reproducible.</p>
 <p><b>Difficult.</b> For each board, 300 random legal fleets were generated and each was played by the probability-density bot (3 times). The fleet that bot needed the most shots to find was kept. Fleets hide where density heuristics look least.</p>
 <p><b>Realistic.</b> Only plausible fleets qualify: standard fleet (5-4-3-3-2), ships straight and non-overlapping, may touch, 2-3 horizontal ships (mixed orientation), at most 2 ships flush against the border.</p>
@@ -82,6 +85,7 @@ main.two{grid-template-columns:repeat(auto-fit,minmax(340px,480px))}
   <div class="stat"><b class="acc">–</b><span>accuracy</span></div><div class="stat"><b class="fb">0</b><span>auto-moves</span></div></div>
   <h2>Fleet sunk <span class="sunkn"></span></h2><div class="bar"><div class="bp"></div></div>
   <h2>Boards <span class="bc"></span></h2><div class="chips"></div></section>
+ <section class="card strat" hidden><h2>Strategy <span class="sn"></span></h2><div class="think sb" style="max-height:340px;border-top:0;padding:0"></div></section>
  <section class="card final" hidden><h2>Result</h2><div class="score fs"></div><div class="fd" style="color:var(--ink-2)"></div></section>
  <section class="card"><h2>Moves</h2><div class="log"></div></section></div>
 
@@ -134,15 +138,17 @@ function render(P,s){
  const q=P.q,el=P.el;
  const running=!!s.alive&&!["done","stopped","idle"].includes(s.status),stale=!s.alive&&["starting","thinking","firing"].includes(s.status),stat=stale?"stopped":s.status;
  el.classList.toggle("empty",!s.cells);
- const md=q("model");if(s.name&&(running||!md.dataset.set)&&[...md.options].some(o=>o.value===s.name)){md.value=s.name;md.dataset.set=running?"":"1"}
- md.disabled=q("nb").disabled=running;q("go").disabled=running;q("go").textContent=s.cells?"↻ Restart":"▶ Start";q("stop").hidden=!running;
+ const sel=q("model");if(s.name&&(running||!sel.dataset.set)&&[...sel.options].some(o=>o.value===s.name)){sel.value=s.name;sel.dataset.set=running?"":"1"}
+ sel.disabled=q("nb").disabled=running;q("go").disabled=running;q("go").textContent=s.cells?"↻ Restart":"▶ Start";q("stop").hidden=!running;
  const st=q("state");st.textContent=stat==="thinking"&&s.turn?`shot ${s.turn} · thinking`:stat;st.className="pill state "+(stat==="done"?"done":running?"live":"");
  if(s.updatedAt)q("upd").textContent=new Date(s.updatedAt).toLocaleTimeString();
  if(!s.cells)return;
- const tu=q("turn");tu.hidden=!s.turn||s.status==="done";
- if(s.turn){const key=s.boardIdx+"/"+s.turn;if(tu.dataset.k!==key){tu.dataset.k=key;tu.classList.remove("flash");void tu.offsetWidth;tu.classList.add("flash")}
+ const tu=q("turn"),strat=s.phase==="strategy";tu.hidden=(!s.turn&&!strat)||s.status==="done";
+ if(strat){tu.dataset.k="";q("tn").textContent="▶ Writing strategy";q("tl").textContent="before the first shot"}
+ else if(s.turn){const key=s.boardIdx+"/"+s.turn;if(tu.dataset.k!==key){tu.dataset.k=key;tu.classList.remove("flash");void tu.offsetWidth;tu.classList.add("flash")}
   q("tn").textContent=`▶ Board ${s.boardIdx}/${s.boards} · Shot ${s.turn}`;const l=s.shots[s.shots.length-1];q("tl").textContent=l?`last: ${l.cell} ${l.result.startsWith("sunk")?"sunk "+l.result.slice(5):l.result}`:"first shot"}
- q("bseed").textContent=`· ${s.boardIdx}/${s.boards} (seed ${s.seed})`;
+ q("bseed").textContent=strat?"· waiting for the strategy":`· ${s.boardIdx}/${s.boards} (seed ${s.seed})`;
+ const sc=q("strat");sc.hidden=!s.strategy;if(s.strategy&&sc.dataset.s!==s.strategy){sc.dataset.s=s.strategy;q("sn").textContent=s.strategyName?"· "+s.strategyName:"";q("sb").innerHTML=md(s.strategy)}
  const hitsOf=s.fleet.map(()=>0);
  for(let r=0;r<10;r++)for(let c=0;c<10;c++){const i=s.shipGrid[r][c];if(i>=0&&s.cells[r][c]==="X")hitsOf[i]++}
  const last=s.shots[s.shots.length-1]?.cell;
