@@ -96,7 +96,8 @@ export function publish(msg = "results: saved boards and runs") {
   const paths = ["results", "assets", "bench.jsonl", "shots.jsonl", "README.md"].filter((p) => existsSync(ROOT + p));
   git("add", ...paths);
   if (!git("status", "--porcelain", "--", ...paths).trim()) return "nothing to publish";
-  git("commit", "-m", msg, "--", ...paths); git("push");
+  git("commit", "-m", msg, "--", ...paths);
+  try { git("push"); } catch { git("pull", "--rebase", "--autostash"); git("push"); } // remote moved on (e.g. a manual edit on GitHub): rebase once, then push
   return "published";
 }
 
