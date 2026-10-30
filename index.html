@@ -86,9 +86,14 @@
   .sec{padding:10px 16px;border-bottom:1px solid var(--line);min-height:0}
   .sec h3{margin:0 0 4px;font:500 11px/1.4 var(--mono);text-transform:uppercase;letter-spacing:.07em;color:var(--ink-3);display:flex;justify-content:space-between;gap:8px}
   .body{white-space:pre-wrap;word-break:break-word;max-height:7.5em;overflow:auto}
-  .move{font:500 20px var(--mono);color:var(--ac)}
+  #moveA,#moveB{font:500 12px var(--mono);color:var(--ac);text-transform:none;letter-spacing:0}
   .sec.fill{flex:1;display:flex;flex-direction:column;border-bottom:1px solid var(--line)}
-  .think{flex:1;min-height:90px;overflow:auto;color:var(--ink-2);font:400 12px/1.55 var(--mono);white-space:pre-wrap;word-break:break-word}
+  .rs{border:1px solid var(--line);border-radius:8px;background:var(--sunk);display:flex;flex-direction:column;min-height:0;flex:1}.rs:not([open]){flex:0 0 auto}
+  .rs summary{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;font:600 12px var(--mono);color:var(--ink-2);list-style:none;user-select:none}.rs summary::-webkit-details-marker{display:none}.rs summary::after{content:"▾";margin-left:auto;color:var(--ink-3);transition:transform .2s}.rs:not([open]) summary::after{transform:rotate(-90deg)}
+  .rs-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}.rs.live .rs-dot{background:var(--ac);animation:p 1.1s ease-in-out infinite}.rs-m{font-weight:400;color:var(--ink-3)}
+  .think{flex:1;min-height:90px;max-height:340px;overflow:auto;padding:6px 14px 12px;font:13px/1.6 var(--sans);color:var(--ink-2);border-top:1px solid var(--line);overscroll-behavior:contain}.think p{margin:0 0 .35em}.think h4{margin:.8em 0 .3em;font:600 13px var(--sans);color:var(--ink)}.think ul,.think ol{margin:.2em 0 .5em;padding-left:1.4em}.think ul{list-style:disc}.think ol{list-style:decimal}.think b{color:var(--ink)}.think code{font:12px var(--mono);background:var(--raised);border:1px solid var(--line);border-radius:3px;padding:0 4px}.think .cl{font:600 12px var(--mono);color:var(--ac)}
+  .caret{display:inline-block;width:7px;height:1em;vertical-align:-2px;margin-left:2px;background:var(--ac);animation:blink 1s steps(2) infinite}@keyframes blink{50%{opacity:0}}
+  .ans{padding:8px 12px;border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--ac);background:var(--raised)}.ans-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.ans-mv{font:700 18px var(--mono);color:var(--ink)}.ans-res{font:600 12px var(--mono);color:var(--ink-3)}.ans-res.hit{color:var(--ac)}.ans-res.sunk{color:var(--bad)}.ans-why{margin:4px 0 0;color:var(--ink-2);font:13px/1.5 var(--sans)}.ans-why:empty{display:none}
   .log{height:112px;overflow:auto;font:400 12px/1.6 var(--mono)}
   .sec.logsec{border-bottom:0}
   .log .h{color:var(--bad)}.log .s{color:var(--bad);font-weight:600}.log .m{color:var(--ink-3)}.log .w{color:var(--warn)}
@@ -143,11 +148,9 @@
   <section class="card A" id="cardA">
     <div class="chead"><b id="nameA">Agent A</b><select id="modelA"></select></div>
     <div class="stats" id="statsA"></div>
-    <div class="sec"><h3>Zet</h3><div class="move" id="moveA">–</div></div>
-    <div class="sec"><h3>Strategie</h3><div class="body" id="stratA">–</div></div>
-    <div class="sec"><h3>Analyse</h3><div class="body" id="analA">–</div></div>
+    <div class="sec"><h3>Zet <span id="moveA">–</span></h3><div class="ans" id="ansA" hidden><div class="ans-h"><b class="ans-mv" id="amvA"></b><span class="ans-res" id="aresA"></span></div><p class="ans-why" id="awhyA"></p></div></div>
+    <div class="sec fill"><details class="rs" id="rsA" open><summary><i class="rs-dot"></i><span class="rs-l" id="rslA">Redeneren</span><span class="rs-m" id="tkA"></span></summary><div class="think" id="thinkA"></div></details></div>
     <div class="sec"><h3>Vijandelijke schepen <span id="enA"></span></h3><div class="ships" id="shipsA"></div></div>
-    <div class="sec fill"><h3>Denkproces <span id="tkA"></span></h3><div class="think" id="thinkA"></div></div>
     <div class="sec logsec"><h3>Zetten</h3><div class="log" id="logA"></div></div>
   </section>
 
@@ -164,11 +167,9 @@
   <section class="card B" id="cardB">
     <div class="chead"><b id="nameB">Agent B</b><select id="modelB"></select></div>
     <div class="stats" id="statsB"></div>
-    <div class="sec"><h3>Zet</h3><div class="move" id="moveB">–</div></div>
-    <div class="sec"><h3>Strategie</h3><div class="body" id="stratB">–</div></div>
-    <div class="sec"><h3>Analyse</h3><div class="body" id="analB">–</div></div>
+    <div class="sec"><h3>Zet <span id="moveB">–</span></h3><div class="ans" id="ansB" hidden><div class="ans-h"><b class="ans-mv" id="amvB"></b><span class="ans-res" id="aresB"></span></div><p class="ans-why" id="awhyB"></p></div></div>
+    <div class="sec fill"><details class="rs" id="rsB" open><summary><i class="rs-dot"></i><span class="rs-l" id="rslB">Redeneren</span><span class="rs-m" id="tkB"></span></summary><div class="think" id="thinkB"></div></details></div>
     <div class="sec"><h3>Vijandelijke schepen <span id="enB"></span></h3><div class="ships" id="shipsB"></div></div>
-    <div class="sec fill"><h3>Denkproces <span id="tkB"></span></h3><div class="think" id="thinkB"></div></div>
     <div class="sec logsec"><h3>Zetten</h3><div class="log" id="logB"></div></div>
   </section>
 </main>
@@ -256,8 +257,8 @@ function stat(k, shots, hits) {
 }
 function resetCards() {
   for (const k of ["A","B"]) {
-    for (const id of ["move","strat","anal"]) txt(id+k, "–");
-    txt("think"+k, ""); txt("tk"+k, ""); txt("log"+k, ""); txt("en"+k, ""); $("#ships"+k).innerHTML = "";
+    txt("move"+k, "–"); $("#ans"+k).hidden = true; txt("tk"+k, ""); txt("rsl"+k, "Redeneren"); $("#rs"+k).classList.remove("live"); $("#rs"+k).open = true;
+    PS[k] = null; $("#think"+k).innerHTML = ""; txt("log"+k, ""); txt("en"+k, ""); $("#ships"+k).innerHTML = "";
     stat(k, 0, 0); $("#card"+k).classList.remove("active");
   }
 }
@@ -271,6 +272,7 @@ function updateCard(k) {
 /* ---------- prompts ---------- */
 // Kansenkaart als hulpmiddel: uit = het model moet zelf redeneren over het bord (meet slimheid); aan = code telt de plaatsingen.
 const HEAT_HINT = false;
+const THINK_TOK = 5000; // denk-tokens per schot, zoals in de benchmark
 
 const RULES = `GAME: Battleship, 1 versus 1, you against another AI. Board 10x10. Columns A-J (left to right), rows 1-10 (top to bottom). A cell is written like "E5" (column E, row 5).
 Each side has 5 ships, straight lines, horizontal or vertical (never diagonal), fully on the board, never overlapping (ships MAY touch each other side by side):
@@ -293,18 +295,30 @@ Good placement: unpredictable (do not always hug the edges or corners, do not us
 ${OUTPUT}
 Schema: {"strategy":"why you placed the fleet like this","ships":[{"name":"Carrier","start":"<cell>","orientation":"<H or V>"},{"name":"Battleship",...},{"name":"Cruiser",...},{"name":"Submarine",...},{"name":"Destroyer",...}]}  All 5 ships, each exactly once.`;
 
+// Zelfde beurtprompt en bordweergave als de benchmark (bench.mjs): stappen HUNT/TARGET, onopgeloste treffers en kleinste schip erbij.
 const TURN_SYSTEM = `${RULES}
 
-PHASE: SHOOTING. Every turn you receive the board of your previous shots and choose ONE new cell to fire at. You never see the enemy's ships, only the results of your own shots.
-Strategy to win with the fewest shots:
-- HUNT mode (no open hits): fire on a parity pattern ((column index + row) even or odd) spaced by the length of the smallest enemy ship still afloat, e.g. checkerboard while a 2-ship floats. Prefer cells that can still fit the longest remaining ship. Do not waste shots on cells where no remaining ship could fit.
-- TARGET mode (an "X" = hit on a ship that is not sunk yet): immediately work around the open hits. Test the 4 neighbours; once two hits line up, follow that line in both directions until misses or edges stop it; then finish. A "#" means that ship is sunk and its cells are resolved: do not chase them, but a hit "X" next to "#" may belong to another ship.
-${HEAT_HINT ? "- Each turn you get a PROBABILITY ANALYSIS (placement counts per cell) like a real Battleship AI keeps. Treat it as your main instrument: the top cells are the statistically best shots. You may deviate (for example to prefer a parity cell or break a tie), but say why. Do NOT recount ship placements yourself.\n" : ""}- Never fire at a cell you already fired at (anything other than "."). Use the remaining ship lengths and the misses to reason about where ships can still be.
+PHASE: SHOOTING. Every turn you receive the board of your previous shots and fire ONE new cell. You never see the enemy's ships, only the results of your own shots. Fewer shots is better.
 
-${OUTPUT}
-Schema: {"analysis":"what the board shows and what you deduce (1-4 sentences)","strategy":"your current plan (1-2 sentences)","notes":"memory for your next turn: open hypotheses, ship orientation guesses, plan, max 600 chars","move":"<cell like E5>"}`;
+Board legend: . unknown, o miss, X hit on a ship that is NOT sunk yet, S hit on a ship that IS sunk (finished, ignore it, but an X next to an S can belong to another ship). Each turn you also get the unresolved hits (all X cells), the remaining ships and the smallest remaining ship, so never spend thinking on working out which hit belongs to which ship.
 
-const adj = (r,c) => [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([y,x]) => y>=0 && y<SIZE && x>=0 && x<SIZE);
+Work through these steps every turn, in order, and keep your thinking short:
+
+STEP 1 - Pick the mode. Read the "Unresolved hits" line. If it lists any cell: TARGET mode. If it says none: HUNT mode. Write the mode down and go to its step.
+
+STEP 2a - TARGET mode (finish the open ship, never wander off):
+  - Two or more unresolved hits in a straight line: the ship runs along that line. Fire the next "." cell at either end of the line. If both ends are blocked (miss, S or edge), the hits belong to different ships: treat each hit on its own.
+  - A single unresolved hit: fire any "." neighbour of it (up, down, left or right).
+  - Do not leave TARGET mode until Unresolved hits is empty.
+
+STEP 2b - HUNT mode. This is a quick decision, not an analysis: do NOT check cells one by one.
+  - Number the columns A=1 ... J=10. If the smallest remaining ship is 2, fire only at "." cells where column number + row number is even. If it is 3 or more, fire only at "." cells where column number + row number is divisible by 3 (every such ship covers one of those cells).
+  - Name one such cell near the centre right away and fire it. Only if that cell is not ".", take the nearest cell that fits the rule.
+
+STEP 3 - Check and answer. The cell must be "." (never o, X or S). Then reply with the JSON.
+
+Thinking: your budget is ${THINK_TOK} tokens per shot. Decide quickly, and always keep a current best move in mind. If the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object (no markdown fences), the "why" in Dutch: {"move":"E5","why":"one short sentence on why this cell"}`;
+
 
 /* Kansenkaart zoals een Battleship-AI die bijhoudt: alleen uit eigen schoten en de lengtes van de schepen die nog drijven.
    Telt per vrije cel in hoeveel plaatsingen van de overgebleven schepen er nog door passen (zonder misses of gezonken cellen).
@@ -328,41 +342,66 @@ function heat(enemy) {
   return all.sort((a,b) => b[0]-a[0]).slice(0,6).map(([n,y,x]) => `${coord(y,x)} ${n}`).join(", ");
 }
 
-function stateText(me, enemy, mem) {
-  const rows = ["    " + [...COLS].join(" ")];
-  const open = [], free = [];
-  for (let r = 0; r < SIZE; r++) {
-    rows.push(String(r+1).padStart(2) + "  " + enemy.shots[r].map((s,c) => { if (s==="hit") open.push([r,c]); if (!s) free.push([r,c]); return s==="miss"?"o":s==="hit"?"X":s==="sunk"?"#":"."; }).join(" "));
-  }
+function stateText(me, enemy) {
+  const rows = ["   " + [...COLS].join(" ")], open = [];
+  for (let r = 0; r < SIZE; r++) rows.push(String(r+1).padStart(2) + " " + enemy.shots[r].map((s,c) => { if (!s) return "."; if (s==="miss") return "o"; if (s==="sunk") return "S"; open.push(coord(r,c)); return "X"; }).join(" "));
   const alive = enemy.ships.filter(s => s.hits < s.len), dead = enemy.ships.filter(s => s.hits === s.len);
-  const nb = new Set(); open.forEach(([r,c]) => adj(r,c).forEach(([y,x]) => { if (!enemy.shots[y][x]) nb.add(coord(y,x)); }));
-  const last = me.history.slice(-8).join("\n") || "(no shots yet)";
-  return `BOARD of your shots at the enemy (. not fired yet, o miss, X hit on a ship still afloat, # cell of a sunk ship):
-${rows.join("\n")}
+  return `Board (. unknown, o miss, X hit on a ship not yet sunk, S hit on a sunk ship):\n${rows.join("\n")}\nSunk: ${dead.map(s => s.name).join(", ") || "none"}. Remaining: ${alive.map(s => `${s.name}(${s.len})`).join(", ")}.\nUnresolved hits: ${open.join(", ") || "none (HUNT mode)"}. Smallest remaining ship: ${Math.min(...alive.map(s => s.len))}.\nShots fired: ${me.history.length}. Your move, JSON only.`;
+}
 
-Enemy ships still afloat: ${alive.map(s => `${s.name} (${s.len})`).join(", ")}
-Enemy ships sunk: ${dead.map(s => s.name).join(", ") || "none"}
-Open hits (not sunk yet): ${open.map(([r,c]) => coord(r,c)).join(", ") || "none, so you are in HUNT mode"}
-Unfired cells next to open hits: ${[...nb].join(", ") || "none"}
-Cells not fired yet: ${free.length}
-${HEAT_HINT ? `Probability analysis (computed from your own shots: number of still-possible ship placements through each cell, best first): ${heat(enemy)}
-` : ""}Your last shots:
-${last}
-Your previous turn: ${mem.analysis ? `analysis: ${mem.analysis} | strategy: ${mem.strategy || "-"}` : "(none, this is your first shot)"}
-Your own notes from last turn: ${mem.notes || "(none)"}
-
-Shots fired so far: ${me.history.length}. Decide your next shot. JSON only.`;
+/* ---------- redenering: lichte markdown + vloeiend typewriter-streamen (zoals bench.html) ---------- */
+const PS = {A:null, B:null};
+const esc = s => s.replace(/[&<>]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function md(src) {
+  const inl = l => l.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\b([A-J](?:10|[1-9]))\b/g,'<span class="cl">$1</span>');
+  let out = "", list = ""; const close = () => { if (list) { out += `</${list}>`; list = ""; } };
+  for (const raw of esc(src).split("\n")) {
+    let m;
+    if (!raw.trim()) { close(); continue; }
+    if (m = /^#{1,4}\s+(.*)/.exec(raw)) { close(); out += `<h4>${inl(m[1])}</h4>`; }
+    else if (m = /^\s*[-*•]\s+(.*)/.exec(raw)) { if (list !== "ul") { close(); out += "<ul>"; list = "ul"; } out += `<li>${inl(m[1])}</li>`; }
+    else if (m = /^\s*\d+[.)]\s+(.*)/.exec(raw)) { if (list !== "ol") { close(); out += "<ol>"; list = "ol"; } out += `<li>${inl(m[1])}</li>`; }
+    else { close(); out += `<p>${inl(raw)}</p>`; }
+  }
+  close(); return out;
+}
+function paint(P) {
+  const th = P.el, stick = th.scrollHeight - th.scrollTop - th.clientHeight < 48;
+  th.innerHTML = (P.shn ? md(P.shn) : '<p style="color:var(--ink-3)">Wachten op het model…</p>') + (P.live ? '<span class="caret"></span>' : "");
+  P.pt = performance.now(); if (stick) th.scrollTop = th.scrollHeight;
+}
+function pump(P) {
+  if (P.raf) return; P.ft = performance.now();
+  const step = ts => {
+    P.raf = null; const dt = Math.min(100, ts - P.ft); P.ft = ts; const b = P.tgt.length - P.shn.length;
+    if (b > 0) { // volg de gemiddelde aankomstsnelheid plus een deel van de achterstand; na het denken snel leegtrekken
+      P.acc = (P.acc||0) + Math.max(P.rate*dt*1.1, b*dt/(P.live ? 900 : 150)); const n = Math.min(b, Math.floor(P.acc));
+      if (n > 0) { P.acc -= n; P.shn = P.tgt.slice(0, P.shn.length + n); if (ts - P.pt > 40 || P.shn.length >= P.tgt.length) paint(P); }
+    }
+    if (P.shn.length < P.tgt.length) P.raf = requestAnimationFrame(step);
+  };
+  P.raf = requestAnimationFrame(step);
+}
+function feed(k, text, live) {
+  let P = PS[k]; if (!P) { P = PS[k] = {el:$("#think"+k), tgt:"", shn:"", pt:0, rate:0, lt:0}; paint(P); }
+  if (!text.startsWith(P.shn)) { P.shn = ""; paint(P); } // nieuwe beurt: vanaf boven typen
+  const now = performance.now(), d = text.length - P.tgt.length;
+  if (d > 0 && P.lt) { const inst = d / Math.max(150, now - P.lt); P.rate = P.rate ? P.rate*.5 + inst*.5 : inst; }
+  if (d > 0) P.lt = now; if (d < 0) { P.rate = 0; P.lt = 0; }
+  P.tgt = text;
+  if (P.live !== live) { P.live = live; paint(P); }
+  pump(P);
 }
 
 /* ---------- LLM-call met streaming ---------- */
 async function ask(model, messages, k, signal) {
   // altijd het hoogste redeneerniveau (Splash: denken aan, providers: reasoning_effort); de proxy (server.mjs) bewaakt de denklengte
-  const body = { model, messages, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true } };
+  const body = { model, messages, stream: true, think_budget: THINK_TOK, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true } };
   const res = await fetch("/api/chat", { method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify(body), signal });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0,200)}`);
   const rd = res.body.getReader(), dec = new TextDecoder();
   let buf = "", content = "", think = "", t0 = performance.now(), n = 0;
-  const thinkEl = $("#think"+k);
+  const rs = $("#rs"+k); rs.classList.add("live"); txt("rsl"+k, "Denkt…"); feed(k, "", true);
   for (;;) {
     const {done, value} = await rd.read(); if (done) break;
     buf += dec.decode(value, {stream:true});
@@ -378,14 +417,14 @@ async function ask(model, messages, k, signal) {
       if (dl.content) content += dl.content;
       if (rt || dl.content) {
         n++;
-        thinkEl.textContent = think + (content ? (think ? "\n\n— antwoord —\n" : "") + content : "");
-        thinkEl.scrollTop = thinkEl.scrollHeight;
-        txt("tk"+k, `${n} chunks · ${((performance.now()-t0)/1000).toFixed(0)}s`);
+        feed(k, think, true);
+        txt("rsl"+k, `Denkt… ${((performance.now()-t0)/1000).toFixed(0)}s`); txt("tk"+k, `${n} chunks`);
       }
     }
   }
   const m = /<think>([\s\S]*?)<\/think>/.exec(content);
   if (m) { think += m[1]; content = content.replace(m[0], ""); }
+  feed(k, think, false); rs.classList.remove("live"); txt("rsl"+k, `Gedacht${think ? ` in ${((performance.now()-t0)/1000).toFixed(0)}s` : ""}`);
   return {content, think};
 }
 function extractJSON(s) {
@@ -401,7 +440,7 @@ function extractJSON(s) {
 /* ---------- JSON-vraag met controle en herkansing ---------- */
 async function askJSON(k, system, user, validate) {
   const me = G.p[k];
-  if (me.model.startsWith("local/") && G.lastLocal && G.lastLocal !== me.model) txt("think"+k, "Splash wisselt naar " + shortModel(me.model) + " (kan een minuut duren)…");
+  if (me.model.startsWith("local/") && G.lastLocal && G.lastLocal !== me.model) txt("rsl"+k, "Splash wisselt naar " + shortModel(me.model) + " (kan een minuut duren)…");
   if (me.model.startsWith("local/")) G.lastLocal = me.model;
   let extra = "";
   for (let tries = 1; tries <= 3; tries++) {
@@ -443,12 +482,12 @@ function defFrom(ships) {
 async function placeAgent(k) {
   const me = G.p[k];
   say(`${me.name} (${shortModel(me.model)}) plaatst de vloot…`); txt("move"+k, "plaatst…"); $("#move"+k).classList.add("live");
-  txt("think"+k, ""); $("#card"+k).classList.add("active");
+  $("#card"+k).classList.add("active");
   const r = await askJSON(k, PLACE_SYSTEM, "Place your fleet now. JSON only.", validPlacement);
   $("#move"+k).classList.remove("live");
   let def, how;
-  if (r) { me.ownPlacement = true; def = defFrom(r.value); how = "eigen plaatsing"; txt("strat"+k, r.parsed.strategy ? String(r.parsed.strategy) : "–"); txt("anal"+k, "Vloot geplaatst door de agent."); }
-  else { def = placeFleet(); how = "willekeurig (geen geldig antwoord)"; txt("anal"+k, "Geen geldige plaatsing na 3 pogingen; het spel plaatste willekeurig."); }
+  if (r) { me.ownPlacement = true; def = defFrom(r.value); how = "eigen plaatsing"; }
+  else { def = placeFleet(); how = "willekeurig (geen geldig antwoord)"; }
   Object.assign(me, def);
   logLine(k, r ? "m" : "w", "vloot: " + how);
   txt("move"+k, "–"); $("#card"+k).classList.remove("active");
@@ -458,36 +497,30 @@ async function placeAgent(k) {
 /* ---------- beurt ---------- */
 async function takeTurn(k) {
   const me = G.p[k], foe = G.p[k==="A"?"B":"A"];
-  txt("think"+k, ""); txt("move"+k, "denkt…"); $("#move"+k).classList.add("live");
+  txt("move"+k, "denkt…"); $("#move"+k).classList.add("live"); $("#ans"+k).hidden = true;
   const validate = o => {
     const rc = parse(o.move);
     if (!rc) return {err:'"move" must be a single cell like "E5" (column A-J, row 1-10).'};
     if (foe.shots[rc[0]][rc[1]]) return {err:`You already fired at ${coord(...rc)}. Choose a cell shown as "." on the board.`};
     return {ok:rc};
   };
-  const r = await askJSON(k, TURN_SYSTEM, stateText(me, foe, me), validate);
+  const r = await askJSON(k, TURN_SYSTEM, stateText(me, foe), validate);
   $("#move"+k).classList.remove("live");
-  let move, parsed, fallback = false;
-  if (r) { move = r.value; parsed = r.parsed; }
+  let move, why = "", fallback = false;
+  if (r) { move = r.value; why = String(r.parsed.why ?? "").slice(0, 240); }
   else {
     const free = []; for (let y=0;y<SIZE;y++) for (let x=0;x<SIZE;x++) if (!foe.shots[y][x]) free.push([y,x]);
     const par = free.filter(([y,x]) => (y+x)%2===0), pool = par.length ? par : free;
-    move = pool[Math.floor(Math.random()*pool.length)]; fallback = true;
-    parsed = {analysis:"(geen geldig antwoord na 3 pogingen, willekeurige zet door het spel)", strategy: me.strategy || "–", notes: me.notes};
+    move = pool[Math.floor(Math.random()*pool.length)]; fallback = true; why = "Geen geldig antwoord na 3 pogingen: willekeurige zet door het spel.";
   }
-  if (parsed.notes) me.notes = String(parsed.notes).slice(0,600);
-  if (parsed.strategy) me.strategy = String(parsed.strategy);
-  me.analysis = fallback ? "" : String(parsed.analysis ?? "").slice(0,600);
-  txt("strat"+k, me.strategy || "–");
-  txt("anal"+k, parsed.analysis ? String(parsed.analysis) : "–");
   if (fallback) me.fallbacks++;
-  return {move, fallback};
+  return {move, fallback, why};
 }
 
 async function waitWhilePaused() { while (paused && G && !G.over) await sleep(150); }
 
 async function run() {
-  const mk = k => ({name:"Agent "+k, model:$("#model"+k).value, ...defFrom([]), history:[], hits:0, fallbacks:0, ownPlacement:false, notes:"", strategy:"", analysis:""});
+  const mk = k => ({name:"Agent "+k, model:$("#model"+k).value, ...defFrom([]), history:[], hits:0, fallbacks:0, ownPlacement:false});
   const A = mk("A"), B = mk("B");
   if (!A.model || !B.model) return say("Kies voor beide agents een model (of voeg een provider toe).");
   if (!$("#swap").checked && A.model.startsWith("local/") && B.model.startsWith("local/")) B.model = A.model;
@@ -506,11 +539,13 @@ async function run() {
       const k = G.turn, o = k==="A"?"B":"A", me = G.p[k], foe = G.p[o];
       $("#card"+k).classList.add("active"); $("#card"+o).classList.remove("active");
       say(`${me.name} (${shortModel(me.model)}) is aan zet…`); txt("status", `beurt ${me.history.length + 1}`);
-      const {move:[r,c], fallback} = await takeTurn(k);
+      const {move:[r,c], fallback, why} = await takeTurn(k);
       const res = fire(foe, r, c);
       me.history.push(`${coord(r,c)} → ${res.result}${res.ship ? " ("+res.ship+" sunk)" : ""}`);
       if (res.result !== "miss") me.hits++;
-      txt("move"+k, coord(r,c) + " · " + (res.result==="miss"?"mis":res.result==="hit"?"TREFFER":"ZONK "+res.ship));
+      $("#move"+k).classList.remove("live"); txt("move"+k, `#${me.history.length}`);
+      const ra = $("#ares"+k); ra.textContent = res.result==="miss"?"mis":res.result==="hit"?"treffer":"zonk "+res.ship; ra.className = "ans-res " + (res.result==="sunk"?"sunk":res.result==="hit"?"hit":"");
+      txt("amv"+k, coord(r,c)); txt("awhy"+k, why); $("#ans"+k).hidden = false;
       logLine(k, fallback?"w":res.result==="sunk"?"s":res.result==="hit"?"h":"m", `#${me.history.length} ${coord(r,c)} ${res.result==="miss"?"mis":res.result==="hit"?"treffer":"zonk "+res.ship}${fallback?" (auto-zet)":""}`);
       paintGrid(o==="A"?"gridA":"gridB", foe, [r,c]);
       updateCard("A"); updateCard("B");
@@ -542,7 +577,7 @@ function fillSelect(sel, saved) {
 }
 async function loadModels() {
   try {
-    groups = await (await fetch("/api/models")).json();
+    groups = (await (await fetch("/api/models")).json()).filter((g) => !g.decision); // decision-modellen kunnen niet in de arena
     fillSelect($("#modelA"), store.get("zs.A")); fillSelect($("#modelB"), store.get("zs.B"));
     const all = [...$("#modelA").options];
     if (!store.get("zs.B") && all.length > 1) $("#modelB").selectedIndex = 1;
