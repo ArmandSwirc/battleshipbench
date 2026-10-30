@@ -13,8 +13,9 @@
 
 | # | Model | Score | Avg shots | Boards | Auto-moves |
 |--:|---|--:|--:|--:|--:|
-| 1 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |
-| 2 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |
+| 1 | unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M | **66.3** | 45 | 3 | 0 |
+| 2 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |
+| 3 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |
 
 ### ⚔️ Arena (head-to-head, Elo)
 
