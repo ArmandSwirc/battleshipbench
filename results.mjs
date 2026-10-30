@@ -1,4 +1,4 @@
-// Saves every played board as an SVG (ships revealed, shots numbered) plus a run.json per model in results/<model>/.
+// Saves per model results/<model>/overview.svg (all boards, ships revealed, shots numbered) and run.json (shot order only).
 //   node results.mjs watch     follow bench-live*.json and save boards of runs started before this existed
 //   node results.mjs publish   commit and push results/, bench.jsonl, shots.jsonl
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from "node:fs";
@@ -10,32 +10,55 @@ const COLS = "ABCDEFGHIJ", CELL = 40, PAD = 28;
 export const slug = (name) => name.replace(/[/:\\]+/g, "_");
 const cellRC = (c) => [Number(c.slice(1)) - 1, COLS.indexOf(c[0])];
 
-export function renderSvg({ model, seed, ships, shots, finished }) {
-  const W = PAD + 10 * CELL + 8, H = PAD + 10 * CELL + 36, own = new Map();
-  ships.forEach((s, i) => s.cells.forEach(([r, c]) => own.set(r * 10 + c, i)));
-  const hits = shots.filter((s) => s.result !== "miss").length;
-  let g = `<rect width="${W}" height="${H}" fill="#fff"/>`;
-  for (let i = 0; i < 10; i++) g += `<text x="${PAD + i * CELL + CELL / 2}" y="18" text-anchor="middle" font-size="13" fill="#555">${COLS[i]}</text><text x="${PAD - 8}" y="${PAD + i * CELL + CELL / 2 + 5}" text-anchor="end" font-size="13" fill="#555">${i + 1}</text>`;
-  for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) g += `<rect x="${PAD + c * CELL}" y="${PAD + r * CELL}" width="${CELL}" height="${CELL}" fill="${own.has(r * 10 + c) ? "#bcd3ee" : "#f4f7fa"}" stroke="#c5ced8"/>`;
-  shots.forEach((s, i) => {
-    const [r, c] = cellRC(s.cell), x = PAD + c * CELL + CELL / 2, y = PAD + r * CELL + CELL / 2, hit = s.result !== "miss";
-    g += hit ? `<circle cx="${x}" cy="${y}" r="15" fill="#d9362b"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">${i + 1}</text>`
-      : `<circle cx="${x}" cy="${y}" r="13" fill="none" stroke="#7b8794" stroke-width="1.5"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="11" fill="#5b6672">${i + 1}</text>`;
-  });
-  g += `<text x="${PAD}" y="${PAD + 10 * CELL + 24}" font-size="13" fill="#222">${esc(model.replace(/^[^/]+\//, ""))} · board ${seed} · ${shots.length} shots, ${hits} hits${finished ? "" : " (not finished)"}</text>`;
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" font-family="-apple-system,Helvetica,Arial,sans-serif">${g}</svg>\n`;
-}
+const SC = { Carrier: "#6f9be0", Battleship: "#a98be0", Cruiser: "#3fb8a4", Submarine: "#d9b24a", Destroyer: "#e07aa8" };
+const STYLE = `:root{--page:#f3f2ee;--raised:#fbfaf7;--sunk:#eae8e2;--ink:#121211;--ink-3:#6b685f;--line:#dcd9d1;--bad:#c8372d;--water:#e6e3db}
+@media(prefers-color-scheme:dark){:root{--page:#0c0c0b;--raised:#151514;--sunk:#161615;--ink:#ebe9e4;--ink-3:#8f8d86;--line:#232220;--bad:#e5564b;--water:#171716}}
+text{font-family:"IBM Plex Mono",ui-monospace,Menlo,monospace;fill:var(--ink-3);font-size:11px}.t{fill:var(--ink);font-weight:600}.h{font-family:"IBM Plex Sans",system-ui,sans-serif;font-size:20px;font-weight:600;fill:var(--ink)}
+.w{fill:var(--water)}.n{fill:var(--ink-3);font-size:10px;font-weight:600}.hit{fill:var(--bad)}.hn{fill:#fff;font-size:10px;font-weight:600}.mis{fill:var(--ink-3)}.lh{fill:var(--bad);font-weight:600}`;
 const esc = (s) => s.replace(/[&<>]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;" })[c]);
+const CS = 28, GX = 22, GY = 52, CW = 352, TOK = 56, LINE = 15;
+
+function card(b, x, y) {
+  const own = new Map(); b.ships.forEach((s) => s.cells.forEach(([r, c]) => own.set(r * 10 + c, s.name)));
+  const hits = b.sequence.filter((q) => q.result !== "miss").length;
+  let g = `<text class="t" x="${x + 16}" y="${y + 26}" style="font-size:13px">Board ${b.seed}</text><text x="${x + CW - 16}" y="${y + 26}" text-anchor="end">${b.sequence.length} shots · ${hits} hits${b.finished ? "" : " · not finished"}</text>`;
+  for (let i = 0; i < 10; i++) g += `<text x="${x + GX + 16 + i * CS + CS / 2}" y="${y + GY - 6}" text-anchor="middle" style="font-size:10px">${COLS[i]}</text><text x="${x + GX + 8}" y="${y + GY + 16 + i * CS + 4}" text-anchor="end" style="font-size:10px">${i + 1}</text>`;
+  for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) {
+    const nm = own.get(r * 10 + c), px = x + GX + 16 + c * CS - 0, py = y + GY + r * CS;
+    g += nm ? `<rect x="${px}" y="${py}" width="${CS - 2}" height="${CS - 2}" rx="2" fill="${SC[nm]}" fill-opacity=".35" stroke="${SC[nm]}" stroke-opacity=".7"/>` : `<rect class="w" x="${px}" y="${py}" width="${CS - 2}" height="${CS - 2}" rx="2"/>`;
+  }
+  b.sequence.forEach((q) => {
+    const [r, c] = cellRC(q.cell), px = x + GX + 16 + c * CS, py = y + GY + r * CS, cx = px + (CS - 2) / 2, cy = py + (CS - 2) / 2;
+    g += q.result === "miss" ? `<circle class="mis" cx="${cx}" cy="${cy - 5}" r="3"/><text class="n" x="${cx}" y="${cy + 9}" text-anchor="middle">${q.n}</text>`
+      : `<rect class="hit" x="${px}" y="${py}" width="${CS - 2}" height="${CS - 2}" rx="2"/><text class="hn" x="${cx}" y="${cy + 4}" text-anchor="middle">${q.n}</text>`;
+  });
+  const per = Math.floor((CW - 32) / TOK), ly = y + GY + 10 * CS + 28;
+  b.sequence.forEach((q, i) => { g += `<text class="${q.result === "miss" ? "" : "lh"}" x="${x + 16 + (i % per) * TOK}" y="${ly + Math.floor(i / per) * LINE}">${q.n}·${q.cell}</text>`; });
+  const h = GY + 10 * CS + 28 + Math.ceil(b.sequence.length / per) * LINE + 12;
+  return { h, g: `<rect x="${x}" y="${y}" width="${CW}" height="${h}" rx="6" fill="var(--raised)" stroke="var(--line)"/>${g}` };
+}
+
+export function renderOverview(run) {
+  const boards = [...run.boards].sort((a, b) => a.seed - b.seed);
+  let y = 76, body = "";
+  for (let i = 0; i < boards.length; i += 2) {
+    const row = boards.slice(i, i + 2).map((b, k) => card(b, 20 + k * (CW + 16), y)), h = Math.max(...row.map((c) => c.h));
+    row.forEach((c) => (body += c.g)); y += h + 16;
+  }
+  const tot = boards.reduce((a, b) => a + (b.finished ? b.sequence.length : 100), 0), W = 40 + 2 * CW + 16;
+  const head = `<text class="h" x="20" y="38">${esc(run.model.replace(/^[^/]+\//, ""))}</text><text x="20" y="58">${boards.length} boards · avg ${Math.round((tot / boards.length) * 10) / 10} shots · numbers show the order of the shots, red = hit</text>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${y}" width="${W}" height="${y}"><style>${STYLE}</style><rect width="${W}" height="${y}" fill="var(--page)"/>${head}${body}</svg>\n`;
+}
 
 // board = { model, seed, ships:[{name,len,cells}], shots:[{cell,result}], finished, fallbacks, startedAt }
 export function saveBoard(board) {
   const dir = DIR + slug(board.model) + "/"; mkdirSync(dir, { recursive: true });
-  writeFileSync(`${dir}board-${board.seed}.svg`, renderSvg(board));
   const f = dir + "run.json", run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: board.model, startedAt: board.startedAt, boards: [] };
-  const rec = { seed: board.seed, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
+  const rec = { seed: board.seed, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
   const i = run.boards.findIndex((b) => b.seed === board.seed);
   if (i >= 0) run.boards[i] = rec; else run.boards.push(rec);
   writeFileSync(f, JSON.stringify(run, null, 1));
+  writeFileSync(dir + "overview.svg", renderOverview(run));
 }
 
 export function publish(msg = "results: saved boards and runs") {
