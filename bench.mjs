@@ -126,7 +126,7 @@ STEP 2b - HUNT mode. This is a quick decision, not an analysis: do NOT check cel
 
 STEP 3 - Check and answer. The cell must be "." (never o, X or S). Then reply with the JSON.
 
-Thinking: your budget is ${THINK} tokens per shot. Decide quickly, and always keep a current best move in mind. If the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object: {"move":"E5"}`;
+Thinking: your budget is ${THINK} tokens per shot. Decide quickly, and always keep a current best move in mind. If the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object: {"move":"E5","why":"one short sentence on why this cell"}`;
 const render = (b) => {
   const rows = ["   " + COLS.split("").join(" ")], open_ = [], sunkCell = (y, x) => b.grid[y][x] >= 0 && b.ships[b.grid[y][x]].hits === b.ships[b.grid[y][x]].len;
   for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s, x) => { if (!s) return "."; if (s.result === "miss") return "o"; if (sunkCell(y, x)) return "S"; open_.push(cell(y, x)); return "X"; }).join(" "));
@@ -163,18 +163,18 @@ async function playModel(model, seed) {
   const b = newBoard(seed), rand = rng(seed + 7); let fallbacks = 0;
   Object.assign(LIVE, { seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
   while (!done(b) && b.count < MAX_SHOTS) {
-    let mv = null, extra = "", tries = 0, ask1 = null, fb = false; LIVE.turn = b.count + 1;
+    let mv = null, extra = "", tries = 0, ask1 = null, fb = false, why = ""; LIVE.turn = b.count + 1;
     for (let t = 0; t < 3 && !mv; t++) {
       tries++; let text = ""; try { text = await askRetry(model, render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
       const m = /\{[^{}]*\}/.exec(text.replace(/```(?:json)?/g, "")); let j = null; try { j = m && JSON.parse(m[0]); } catch {}
       const rc = parse(j?.move);
-      if (rc && !b.shots[rc[0]][rc[1]]) mv = rc; else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
+      if (rc && !b.shots[rc[0]][rc[1]]) { mv = rc; why = String(j?.why ?? "").slice(0, 240); } else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
     }
     if (!mv) { mv = botRandom(b, rand); fallbacks++; fb = true; }
     const fr = fire(b, ...mv);
     try { appendFileSync(SHOTS, JSON.stringify({ ts: new Date().toISOString(), model, seed, n: b.count, cell: cell(...mv), result: fr.result, fallback: fb, tries, cut: ask1?.cut ?? null, think: ask1?.tok ?? null, ms: ask1?.ms ?? null, budget: THINK }) + "\n"); } catch {}
     LIVE.cells[mv[0]][mv[1]] = fr.result === "miss" ? "o" : "X"; LIVE.fallbacks = fallbacks;
-    LIVE.shots.push({ cell: cell(...mv), result: fr.result === "sunk" ? `sunk ${fr.ship}` : fr.result });
+    LIVE.shots.push({ cell: cell(...mv), result: fr.result === "sunk" ? `sunk ${fr.ship}` : fr.result, why });
     if (fr.ship) LIVE.sunk.push(fr.ship);
     LIVE.status = "firing"; flush(true);
     process.stdout.write(done(b) ? "!" : b.shots[mv[0]][mv[1]].result === "miss" ? "." : "X");

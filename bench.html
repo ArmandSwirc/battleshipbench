@@ -38,10 +38,20 @@ details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 12px v
 .c.last{outline:2px solid var(--a);outline-offset:1px}.m.last{outline:2px solid var(--a)}
 .col{display:flex;flex-direction:column;gap:16px}
 main{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,480px));justify-content:center;gap:24px;padding:24px;margin:auto}
-.panel.empty section{display:none}.ph select,.go{font:12px var(--mono);background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:4px 8px}.ph .model{max-width:260px;min-width:0}.go{cursor:pointer;color:var(--b);border-color:var(--b)}.go:disabled{opacity:.4;cursor:default}.panel .grid{max-width:420px;margin:0 auto}.stop{font:12px var(--mono);color:var(--bad);background:none;border:1px solid var(--bad);border-radius:3px;padding:3px 9px;cursor:pointer}.stop:hover{background:var(--bad);color:#fff}.stop[hidden]{display:none}.panel pre{height:220px;max-height:220px;overflow:auto}
+.panel.empty section{display:none}.ph select,.go{font:12px var(--mono);background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:4px 8px}.ph .model{max-width:260px;min-width:0}.go{cursor:pointer;color:var(--b);border-color:var(--b)}.go:disabled{opacity:.4;cursor:default}.panel .grid{max-width:420px;margin:0 auto}.stop{font:12px var(--mono);color:var(--bad);background:none;border:1px solid var(--bad);border-radius:3px;padding:3px 9px;cursor:pointer}.stop:hover{background:var(--bad);color:#fff}.stop[hidden]{display:none}.panel .think{height:240px}
 .panel{display:flex;flex-direction:column;gap:16px;min-width:0}.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ph .slot{font:600 15px var(--mono);color:var(--ink-3)}.ph .upd{margin-left:auto}
-.panel[hidden]{display:none}.panel{animation:pin .25s ease-out}@keyframes pin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-main.one{grid-template-columns:minmax(340px,680px)}main.one .panel .grid{max-width:520px}main.one .panel pre{height:300px;max-height:300px}
+.rs{border:1px solid var(--line);border-radius:8px;background:var(--sunk)}.rs summary{display:flex;align-items:center;gap:10px;cursor:pointer;padding:9px 12px;font:600 12px var(--mono);color:var(--ink-2);list-style:none;user-select:none}.rs summary::-webkit-details-marker{display:none}.rs summary::after{content:"▾";margin-left:auto;color:var(--ink-3);transition:transform .2s}.rs:not([open]) summary::after{transform:rotate(-90deg)}
+.rs-dot{width:8px;height:8px;border-radius:50%;background:var(--ink-3)}.rs.live .rs-dot{background:var(--a);animation:pulse 1.1s ease-in-out infinite}@keyframes pulse{50%{opacity:.25;transform:scale(.7)}}.rs-m{font-weight:400;color:var(--ink-3)}
+.think{overflow:auto;padding:6px 14px 12px;font:13px/1.6 var(--sans);color:var(--ink-2);border-top:1px solid var(--line);overscroll-behavior:contain}.think p{margin:0 0 .35em}.think h4{margin:.8em 0 .3em;font:600 13px var(--sans);color:var(--ink)}.think ul,.think ol{margin:.2em 0 .5em;padding-left:1.4em}.think ul{list-style:disc}.think ol{list-style:decimal}.think b{color:var(--ink)}.think code{font:12px var(--mono);background:var(--raised);border:1px solid var(--line);border-radius:3px;padding:0 4px}.think .cl{font:600 12px var(--mono);color:var(--a)}
+.caret{display:inline-block;width:7px;height:1em;vertical-align:-2px;margin-left:2px;background:var(--a);animation:blink 1s steps(2) infinite}@keyframes blink{50%{opacity:0}}
+.ans{margin-top:10px;padding:10px 14px;border-radius:8px;border:1px solid var(--line);border-left:4px solid var(--a);background:var(--raised)}.ans-h{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}.ans-n{font:11px var(--mono);color:var(--ink-3);text-transform:uppercase;letter-spacing:.06em}.ans-mv{font:700 18px var(--mono);color:var(--ink)}.ans-res{font:600 12px var(--mono);color:var(--ink-3)}.ans-res.hit{color:var(--b)}.ans-res.sunk{color:var(--bad)}.ans-why{margin:6px 0 0;color:var(--ink-2);font:13px/1.5 var(--sans)}.ans-why:empty{display:none}
+.panel[hidden]{display:none!important}
+.idle{display:none;flex-direction:column;gap:6px;align-items:center;text-align:center;padding:56px 24px;border:1px dashed var(--line);border-radius:10px;color:var(--ink-3);font:13px/1.5 var(--sans)}.idle b{font:600 15px var(--sans);color:var(--ink-2)}.panel.empty .idle{display:flex}main.one .idle{grid-column:1/-1}
+main.one .ph .slot{display:none}.panel{animation:pin .25s ease-out}@keyframes pin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.pcol{display:flex;flex-direction:column;gap:16px;min-width:0}
+main.one{grid-template-columns:minmax(0,1320px)}main.one .panel .grid{max-width:520px}
+@media(min-width:1040px){main.one .panel{display:grid;grid-template-columns:minmax(380px,560px) minmax(0,1fr);gap:16px 24px;align-items:start}main.one .ph{grid-column:1/-1}main.one .panel .think{height:380px}}
+@media(max-width:1039px){main.one{grid-template-columns:minmax(340px,680px)}main.one .panel .think{height:300px}}
 main.two{grid-template-columns:repeat(auto-fit,minmax(340px,480px))}
 .tabs{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:14px 24px 0}
 .tab{display:inline-flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;border:1px solid var(--line);border-radius:99px;background:var(--raised);font:12px var(--mono);color:var(--ink-2);animation:pin .2s ease-out}
@@ -62,23 +72,25 @@ main.two{grid-template-columns:repeat(auto-fit,minmax(340px,480px))}
 <p><b>Score.</b> 100 × (100 − avg shots) / 83. 100 = 17 shots; 0 = not finished in 100.</p></details></section></div>
 <template id="tpl"><section class="panel">
 <div class="ph"><b class="slot"></b><select class="model"></select><select class="nb"><option>1</option><option selected>3</option><option>5</option><option>10</option></select><button class="go">▶ Start</button><button class="stop" hidden>■ Stop</button><span class="pill state">idle</span><span class="pill upd"></span></div>
-<section class="card"><h2>Board <span class="bseed"></span></h2><div class="grid"></div>
-<div class="fleet"></div></section>
- <section class="card"><h2>Thinking <span class="tk"></span></h2><div class="turn" hidden><span class="tn"></span><small class="tl"></small></div><pre class="think">–</pre></section>
+<div class="idle"><b>Ready when you are</b><span>Pick a model, choose how many boards, and press Start. Every model plays the same seeded boards.</span></div>
+<div class="pcol pl"><section class="card"><h2>Board <span class="bseed"></span></h2><div class="grid"></div>
+<div class="fleet"></div></section></div>
+<div class="pcol pr"> <section class="card"><h2>Thinking <span class="tk"></span></h2><div class="turn" hidden><span class="tn"></span><small class="tl"></small></div><details class="rs" open><summary><i class="rs-dot"></i><span class="rs-l">Reasoning</span><span class="rs-m"></span></summary><div class="think">–</div></details>
+ <div class="ans" hidden><div class="ans-h"><small class="ans-n"></small><b class="ans-mv"></b><span class="ans-res"></span></div><p class="ans-why"></p></div></section>
  <section class="card"><div class="stats">
   <div class="stat"><b class="n">0</b><span>shots</span></div><div class="stat"><b class="h">0</b><span>hits</span></div>
   <div class="stat"><b class="acc">–</b><span>accuracy</span></div><div class="stat"><b class="fb">0</b><span>auto-moves</span></div></div>
   <h2>Fleet sunk <span class="sunkn"></span></h2><div class="bar"><div class="bp"></div></div>
   <h2>Boards <span class="bc"></span></h2><div class="chips"></div></section>
  <section class="card final" hidden><h2>Result</h2><div class="score fs"></div><div class="fd" style="color:var(--ink-2)"></div></section>
- <section class="card"><h2>Moves</h2><div class="log"></div></section>
+ <section class="card"><h2>Moves</h2><div class="log"></div></section></div>
 
 </section></template>
 <script>
 const $=s=>document.querySelector(s),COLS="ABCDEFGHIJ",COL={Carrier:"#6f9be0",Battleship:"#a98be0",Cruiser:"#3fb8a4",Submarine:"#d9b24a",Destroyer:"#e07aa8"};
 const SLOTS=["a","b"],P={};
 const tpl=$("#tpl");
-function mk(slot){const el=tpl.content.firstElementChild.cloneNode(true),q=c=>el.querySelector("."+c);
+function mk(slot){const el=tpl.content.firstElementChild.cloneNode(true),q=c=>el.querySelector("."+c);el.classList.add("empty");
  const g=q("grid");g.innerHTML="<i></i>"+[...COLS].map(c=>`<i>${c}</i>`).join("");
  for(let r=0;r<10;r++){g.insertAdjacentHTML("beforeend",`<i>${r+1}</i>`);for(let c=0;c<10;c++)g.insertAdjacentHTML("beforeend",`<div class="c" data-r="${r}" data-c="${c}"></div>`)}
  q("stop").onclick=()=>fetch("/api/bench/stop?slot="+slot,{method:"POST"});
@@ -86,6 +98,38 @@ function mk(slot){const el=tpl.content.firstElementChild.cloneNode(true),q=c=>el
  q("go").onclick=()=>fetch("/api/bench/start?slot="+slot,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({model:q("model").value,boards:q("nb").value})});
  return {el,q,slot}}
 const LASTHL=new Map();
+// ---- reasoning: lightweight markdown + smooth typewriter streaming
+const esc=s=>s.replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
+function md(src){
+ const inl=l=>l.replace(/\*\*(.+?)\*\*/g,"<b>$1</b>").replace(/`([^`]+)`/g,"<code>$1</code>").replace(/\b([A-J](?:10|[1-9]))\b/g,'<span class="cl">$1</span>');
+ let out="",list="";const close=()=>{if(list){out+=`</${list}>`;list=""}};
+ for(const raw of esc(src).split("\n")){
+  let m;
+  if(!raw.trim()){close();continue}
+  if(m=/^#{1,4}\s+(.*)/.exec(raw)){close();out+=`<h4>${inl(m[1])}</h4>`}
+  else if(m=/^\s*[-*•]\s+(.*)/.exec(raw)){if(list!=="ul"){close();out+="<ul>";list="ul"}out+=`<li>${inl(m[1])}</li>`}
+  else if(m=/^\s*\d+[.)]\s+(.*)/.exec(raw)){if(list!=="ol"){close();out+="<ol>";list="ol"}out+=`<li>${inl(m[1])}</li>`}
+  else{close();out+=`<p>${inl(raw)}</p>`}
+ }
+ close();return out}
+function paint(P){const th=P.q("think"),stick=th.scrollHeight-th.scrollTop-th.clientHeight<48;
+ th.innerHTML=(P.shn?md(P.shn):'<p style="color:var(--ink-3)">Waiting for the model…</p>')+(P.live?'<span class="caret"></span>':"");
+ P.pt=performance.now();if(stick)th.scrollTop=th.scrollHeight}
+function pump(P){if(P.raf)return;P.ft=performance.now();const step=ts=>{P.raf=null;const dt=Math.min(100,ts-P.ft);P.ft=ts;const b=P.tgt.length-P.shn.length;
+  if(b>0){ // follow the average arrival speed, plus a catch-up share of the backlog; drain quickly once the thinking is over
+   P.acc=(P.acc||0)+Math.max(P.rate*dt*1.1,b*dt/(P.live?900:150));const n=Math.min(b,Math.floor(P.acc));
+   if(n>0){P.acc-=n;P.shn=P.tgt.slice(0,P.shn.length+n);if(ts-P.pt>40||P.shn.length>=P.tgt.length)paint(P)}}
+  if(P.shn.length<P.tgt.length)P.raf=requestAnimationFrame(step)};P.raf=requestAnimationFrame(step)}
+function feed(P,text,live){
+ if(P.tgt===undefined){P.tgt="";P.shn="";P.pt=0;P.rate=0;P.lt=0;paint(P)}
+ if(!text.startsWith(P.shn)){P.shn="";paint(P)}   // a new shot starts: type from the top
+ const now=performance.now(),d=text.length-P.tgt.length;
+ if(d>0&&P.lt){const inst=d/Math.max(150,now-P.lt);P.rate=P.rate?P.rate*.5+inst*.5:inst}
+ if(d>0)P.lt=now;if(d<0){P.rate=0;P.lt=0}
+ P.tgt=text;
+ if(P.live!==live){P.live=live;paint(P)}
+ pump(P)}
+
 function render(P,s){
  const q=P.q,el=P.el;
  const running=!!s.alive&&!["done","stopped","idle"].includes(s.status),stale=!s.alive&&["starting","thinking","firing"].includes(s.status),stat=stale?"stopped":s.status;
@@ -114,8 +158,14 @@ function render(P,s){
  const dn=s.results.length;q("bc").textContent=`· ${dn}/${s.boards} done`;
  q("chips").innerHTML=s.results.map((r,i)=>`<span class="chip">#${i+1} · ${r.shots} shots</span>`).join("")+(s.status!=="done"?`<span class="chip cur">#${dn+1} · ${n} shots…</span>`:"");
  const t=s.askStart&&s.status==="thinking"?Math.round((Date.now()-s.askStart)/1000)+"s · ":"";
- q("tk").textContent=s.thinkChars?`· ${t}${s.thinkMax?`${s.thinkTok} / ${s.thinkMax} tokens`:`${s.thinkChars} chars`}`:"";
- const th=q("think");if(s.think&&th.textContent!==s.think){th.textContent=s.think;th.scrollTop=th.scrollHeight}else if(!s.think)th.textContent="–";
+ q("tk").textContent="";
+ const live=!!s.alive&&s.status==="thinking",rs=q("rs");rs.classList.toggle("live",live);
+ if(live&&s.askStart)P.sec=Math.round((Date.now()-s.askStart)/1000);
+ q("rs-l").textContent=live?`Thinking…${P.sec?` ${P.sec}s`:""}`:(s.think||s.thinkChars)?`Thought${P.sec?` for ${P.sec}s`:""}`:"Reasoning";
+ q("rs-m").textContent=s.thinkChars?(s.thinkMax?`${s.thinkTok} / ${s.thinkMax} tokens`:`${s.thinkChars} chars`):"";
+ feed(P,s.think||"",live);
+ const lm=s.shots[s.shots.length-1],an=q("ans");an.hidden=!lm;
+ if(lm){const sk=lm.result.startsWith("sunk");q("ans-n").textContent=`Move ${s.shots.length}`;q("ans-mv").textContent=lm.cell;const r=q("ans-res");r.textContent=sk?"sunk "+lm.result.slice(5):lm.result;r.className="ans-res "+(sk?"sunk":lm.result==="hit"?"hit":"");q("ans-why").textContent=lm.why||""}
  q("log").innerHTML=s.shots.map((x,i)=>`<span class="m ${x.result.startsWith("sunk")?"sunk":x.result==="hit"?"hit":""}${i===n-1?" last":""}">${x.cell}${x.result==="miss"?"":x.result.startsWith("sunk")?" ✕ "+x.result.slice(5):" ✕"}</span>`).join("");
  const f=q("final");f.hidden=!s.final;if(s.final){q("fs").textContent=s.final.score;q("fd").textContent=`score 0–100 · avg ${s.final.avgShots} shots over ${s.final.boards} boards · ${s.final.fallbacks} auto-moves`}
 }
@@ -128,9 +178,10 @@ const saveVis=()=>{try{localStorage.setItem("bb-slots",JSON.stringify(VIS))}catc
 function layout(){
  for(const sl of SLOTS)PANELS[sl].el.hidden=!VIS.includes(sl);
  $("#main").className=VIS.length>1?"two":"one";
- const html=VIS.map(sl=>{const run=RUN[sl],why=run?"Stop the run first":VIS.length<2?"Keep at least one benchmark open":"Close benchmark "+sl.toUpperCase();
-  return `<span class="tab ${sl}"><i class="dot"></i><b>${sl.toUpperCase()}</b><span class="ts">${LAST[sl]||"idle"}</span><button class="x" data-sl="${sl}" ${run||VIS.length<2?"disabled":""} title="${why}" aria-label="${why}">×</button></span>`}).join("")
-  +(VIS.length<2?`<button class="add" id="add" title="Open a second benchmark next to this one">+ Add benchmark</button>`:`<span class="max">2 of 2 open</span>`);
+ const one=VIS.length<2;
+ const html=VIS.map(sl=>{const run=RUN[sl],why=run?"Stop the run first":"Close benchmark "+sl.toUpperCase();
+  return `<span class="tab ${sl}"><i class="dot"></i><b>${one?"Benchmark":sl.toUpperCase()}</b><span class="ts">${LAST[sl]||"idle"}</span>${one?"":`<button class="x" data-sl="${sl}" ${run?"disabled":""} title="${why}" aria-label="${why}">×</button>`}</span>`}).join("")
+  +(one?`<button class="add" id="add" title="Open a second benchmark next to this one">+ Add second benchmark</button>`:`<span class="max">2 of 2 open</span>`);
  if(html!==tabsKey){tabsKey=html;$("#tabs").innerHTML=html}}
 $("#tabs").addEventListener("click",e=>{
  const x=e.target.closest(".x");if(x&&!x.disabled){VIS=VIS.filter(s=>s!==x.dataset.sl);saveVis();layout();return}
