@@ -106,7 +106,7 @@ async function playBot(fn, seed) {
 }
 
 // ---- model-speler (via server.mjs) ----
-const THINK = Number(process.env.BENCH_THINK ?? 4000); // denk-tokens per schot
+const THINK = Number(process.env.BENCH_THINK ?? 8000); // denk-tokens per schot
 const SYSTEM = `You play Battleship on a 10x10 board (columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight (horizontal or vertical), never overlap, and may touch each other. Fire one shot per turn at a cell not yet fired at. Fewer shots is better.
 
 Board legend: . unknown, o miss, X hit on a ship that is NOT sunk yet, S hit on a ship that IS sunk (finished, ignore it, but an X next to an S can belong to another ship). Each turn you also get the unresolved hits (all X cells), the remaining ships and the smallest remaining ship, so never spend thinking on working out which hit belongs to which ship.
