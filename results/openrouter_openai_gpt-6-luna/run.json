@@ -1,0 +1,164 @@
+{
+ "model": "openrouter/openai/gpt-6-luna",
+ "startedAt": "2026-10-30T08:27:40.478Z",
+ "boards": [
+  {
+   "seed": 11,
+   "shots": 10,
+   "finished": false,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       3,
+       2
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       3,
+       5
+      ],
+      [
+       3,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       0,
+       1
+      ],
+      [
+       0,
+       2
+      ],
+      [
+       0,
+       3
+      ],
+      [
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       5
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       9,
+       5
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       2,
+       1
+      ],
+      [
+       2,
+       2
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "D5",
+     "result": "miss"
+    },
+    {
+     "n": 2,
+     "cell": "E5",
+     "result": "miss"
+    },
+    {
+     "n": 3,
+     "cell": "F6",
+     "result": "miss"
+    },
+    {
+     "n": 4,
+     "cell": "G4",
+     "result": "hit"
+    },
+    {
+     "n": 5,
+     "cell": "G5",
+     "result": "miss"
+    },
+    {
+     "n": 6,
+     "cell": "F4",
+     "result": "hit"
+    },
+    {
+     "n": 7,
+     "cell": "E4",
+     "result": "hit"
+    },
+    {
+     "n": 8,
+     "cell": "D4",
+     "result": "hit"
+    },
+    {
+     "n": 9,
+     "cell": "C4",
+     "result": "sunk Carrier"
+    },
+    {
+     "n": 10,
+     "cell": "E8",
+     "result": "miss"
+    }
+   ]
+  }
+ ]
+}

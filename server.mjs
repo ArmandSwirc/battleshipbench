@@ -5,7 +5,7 @@ import { createServer } from "node:http";
 import { spawn, execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, chmodSync, appendFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { saveArena, publish, dossier } from "./results.mjs";
+import { saveArena, publish } from "./results.mjs";
 
 const PORT = Number(process.env.PORT ?? 8791);
 const GATEWAY = (process.env.QWEN_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
@@ -139,7 +139,7 @@ function scoreboard(matches) {
   }
   return [...M.values()].map((r) => ({ ...r, elo: Math.round(elo.get(r.model) ?? 1000), winRate: r.wins / r.games, accuracy: r.shots ? r.hits / r.shots : 0, avgShotsToWin: r.wins ? r.winShots / r.wins : null })).sort((a, b) => b.elo - a.elo);
 }
-const side = (x) => ({ model: String(x?.model ?? ""), shots: Number(x?.shots) || 0, hits: Number(x?.hits) || 0, fallbacks: Number(x?.fallbacks) || 0, ownPlacement: !!x?.ownPlacement, placement: String(x?.placement ?? "").slice(0, 2000), ...(x?.lesson ? { lesson: String(x.lesson).slice(0, 3000) } : {}), ...(x?.dossier ? { dossier: String(x.dossier).slice(0, 8000) } : {}), ...(x?.strategy ? { strategyName: String(x.strategyName ?? "").slice(0, 60), strategy: String(x.strategy).slice(0, 20000) } : {}) });
+const side = (x) => ({ model: String(x?.model ?? ""), shots: Number(x?.shots) || 0, hits: Number(x?.hits) || 0, fallbacks: Number(x?.fallbacks) || 0, ownPlacement: !!x?.ownPlacement, placement: String(x?.placement ?? "").slice(0, 2000), ...(x?.strategy ? { strategyName: String(x.strategyName ?? "").slice(0, 60), strategy: String(x.strategy).slice(0, 20000) } : {}) });
 const firstJSON = (t) => { const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch { return null; } };
 
 async function handle(req, res) {
@@ -162,10 +162,6 @@ async function handle(req, res) {
       }
     } catch (e) { console.error("results:", e.message); }
     return json(res, 200, rec);
-  }
-  if (req.method === "GET" && path === "/api/dossier") { // what `me` knows about `foe` from earlier games (dossier mode)
-    const q = new URL(req.url, "http://x").searchParams;
-    return json(res, 200, { text: dossier(String(q.get("me") ?? ""), String(q.get("foe") ?? "")) });
   }
   if (req.method === "GET" && path === "/api/scores") return json(res, 200, { scores: scoreboard(loadMatches()), matches: loadMatches().slice(-30).reverse() });
 
