@@ -4,7 +4,7 @@
  "boards": [
   {
    "seed": 11,
-   "shots": 30,
+   "shots": 50,
    "finished": false,
    "fallbacks": 0,
    "ships": [
@@ -256,6 +256,106 @@
     {
      "n": 30,
      "cell": "I9",
+     "result": "miss"
+    },
+    {
+     "n": 31,
+     "cell": "C9",
+     "result": "miss"
+    },
+    {
+     "n": 32,
+     "cell": "E3",
+     "result": "miss"
+    },
+    {
+     "n": 33,
+     "cell": "F2",
+     "result": "miss"
+    },
+    {
+     "n": 34,
+     "cell": "B8",
+     "result": "miss"
+    },
+    {
+     "n": 35,
+     "cell": "C3",
+     "result": "hit"
+    },
+    {
+     "n": 36,
+     "cell": "C2",
+     "result": "miss"
+    },
+    {
+     "n": 37,
+     "cell": "B3",
+     "result": "sunk Destroyer"
+    },
+    {
+     "n": 38,
+     "cell": "D5",
+     "result": "miss"
+    },
+    {
+     "n": 39,
+     "cell": "G2",
+     "result": "miss"
+    },
+    {
+     "n": 40,
+     "cell": "A5",
+     "result": "miss"
+    },
+    {
+     "n": 41,
+     "cell": "D2",
+     "result": "miss"
+    },
+    {
+     "n": 42,
+     "cell": "C6",
+     "result": "miss"
+    },
+    {
+     "n": 43,
+     "cell": "I6",
+     "result": "miss"
+    },
+    {
+     "n": 44,
+     "cell": "H7",
+     "result": "miss"
+    },
+    {
+     "n": 45,
+     "cell": "I3",
+     "result": "miss"
+    },
+    {
+     "n": 46,
+     "cell": "I4",
+     "result": "miss"
+    },
+    {
+     "n": 47,
+     "cell": "B4",
+     "result": "miss"
+    },
+    {
+     "n": 48,
+     "cell": "J5",
+     "result": "miss"
+    },
+    {
+     "n": 49,
+     "cell": "F5",
+     "result": "miss"
+    },
+    {
+     "n": 50,
+     "cell": "B7",
      "result": "miss"
     }
    ]
