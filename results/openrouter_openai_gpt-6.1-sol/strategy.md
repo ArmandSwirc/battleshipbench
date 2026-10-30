@@ -152,3 +152,54 @@
 | 48 | J9 | hit | J9 is a guaranteed hit in the only remaining cruiser placement, J8–J10. |
 | 49 | J10 | sunk Cruiser | J10 is a guaranteed hit that sinks the cruiser and completes the fleet. |
 
+## Board 37 · 46 shots
+
+| # | Cell | Result | Reasoning |
+|---|---|---|---|
+| 1 | E5 | hit | The central opening covers many possible placements of every ship length. |
+| 2 | F5 | miss | This central neighbor tests E5’s ship orientation while retaining strong coverage from other possible ships. |
+| 3 | E6 | miss | With F5 ruled out, E6 has strong support from vertical placements through E5 and better central coverage. |
+| 4 | E4 | hit | E5’s ship must extend upward or leftward, and E4 wins the symmetry tie by row order. |
+| 5 | E3 | sunk Cruiser | E3 is the strongest continuation of the two vertical hits, with E6 blocking the opposite end. |
+| 6 | D7 | miss | D7 has strong placement coverage for every remaining ship length in an untouched region. |
+| 7 | G8 | miss | G8 has the strongest combined coverage of legal placements for the four remaining ships. |
+| 8 | H7 | miss | H7 has the strongest combined coverage of legal placements for the four remaining ships. |
+| 9 | D2 | hit | D2 ties for the strongest weighted coverage of legal placements for the remaining ships and wins the row-column tiebreak. |
+| 10 | E2 | hit | E2 has the strongest support from horizontal placements through D2, especially for the longer remaining ships. |
+| 11 | F2 | miss | F2 extends the likely horizontal ship and also covers cases where E2 belongs to a separate ship extending right. |
+| 12 | C2 | hit | C2 extends the likely horizontal ship through D2 and E2, with F2 blocking its right end. |
+| 13 | B2 | hit | B2 extends the three-hit row at its only open end and could sink the battleship. |
+| 14 | A2 | sunk Carrier | A2 would complete the likely carrier through B2–E2, whose opposite end is blocked by the miss at F2. |
+| 15 | C8 | miss | C8 has the highest weighted coverage of legal placements for the three remaining ships. |
+| 16 | G4 | miss | G4 ties for the highest weighted coverage of legal placements for the three remaining ships and wins the row-column tiebreak. |
+| 17 | I6 | miss | I6 ties for the highest weighted coverage of legal remaining ship placements and wins the row-order tiebreak. |
+| 18 | F9 | hit | F9 has the highest weighted coverage of legal placements for the three remaining ships. |
+| 19 | E9 | miss | E9 has strong support from horizontal ships through F9 and better additional coverage than G9. |
+| 20 | F8 | miss | F8 has the strongest support from legal ship placements containing the hit at F9. |
+| 21 | G9 | hit | G9 continues every horizontal ship through F9, while F10 is possible only for the destroyer. |
+| 22 | H9 | sunk Submarine | H9 is guaranteed occupied in every legal assignment of the two unresolved hits. |
+| 23 | H3 | miss | H3 has the highest combined occupancy probability across compatible battleship and destroyer placements. |
+| 24 | B6 | miss | B6 has the strongest combined occupancy support from compatible battleship and destroyer placements. |
+| 25 | J5 | miss | J5 has the highest combined occupancy probability across compatible battleship and destroyer placements. |
+| 26 | G1 | miss | G1 ties for the highest occupancy probability across compatible remaining fleets and wins the row-order tiebreak. |
+| 27 | D10 | miss | D10 has the highest combined occupancy probability across compatible battleship and destroyer placements. |
+| 28 | A7 | miss | A7 has the highest occupancy probability across compatible battleship and destroyer placements. |
+| 29 | C1 | miss | C1 covers all three top-row battleship placements and offers a strongly supported follow-up at D1. |
+| 30 | I2 | miss | I2 has the highest occupancy probability across compatible battleship and destroyer placements. |
+| 31 | G10 | miss | G10 covers three battleship placements that all share H10, giving a near-certain follow-up if this shot hits. |
+| 32 | C5 | miss | C5 covers three surviving battleship placements and has the strongest combined support from both remaining ships. |
+| 33 | J7 | miss | J7 tests both overlapping battleship placements and offers a strongly supported follow-up at J8. |
+| 34 | A4 | hit | A4 ties for the best two-shot hit coverage while testing both horizontal and vertical battleship placements. |
+| 35 | A5 | hit | A5 ties for the highest hit probability and has the better chance of immediately sinking the destroyer. |
+| 36 | A6 | hit | A6 is occupied in nearly every consistent fleet and distinguishes the remaining ship assignments. |
+| 37 | A3 | sunk Battleship | A6 must belong to the vertical battleship spanning A3–A6, so A3 is a guaranteed sinking shot. |
+| 38 | I4 | miss | I4 covers four legal destroyer placements, tying for the highest hit probability. |
+| 39 | H5 | miss | H5 covers four legal destroyer placements, tying for the highest hit probability and winning the row-order tiebreak. |
+| 40 | G6 | miss | G6 covers four legal destroyer placements, tying for the highest hit probability and winning the row-order tiebreak. |
+| 41 | I8 | miss | I8 covers four legal destroyer placements, tying for the highest hit probability and winning the row-order tiebreak. |
+| 42 | B9 | miss | B9 covers four legal destroyer placements, more than any other untried cell. |
+| 43 | C3 | miss | C3 covers three legal destroyer placements, tying for the highest hit probability and winning the row-order tiebreak. |
+| 44 | B4 | miss | B4 covers three surviving destroyer placements, tying for the highest hit probability and winning the row-column tiebreak. |
+| 45 | J3 | hit | J3 covers three surviving destroyer placements, tying for the highest hit probability and winning the row-order tiebreak. |
+| 46 | J2 | sunk Destroyer | The destroyer must extend from J3 to J2, I3, or J4; all are equally likely, so J2 wins the row-order tiebreak. |
+
