@@ -33,7 +33,7 @@ function toAnthropic(body) {
   const system = body.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n");
   const out = { model: body.model, max_tokens: body.max_tokens ?? 4096, stream: true, messages: body.messages.filter((m) => m.role !== "system") };
   if (system) out.system = system;
-  if (body.temperature != null) out.temperature = Math.min(1, body.temperature);
+  // temperature wordt door nieuwere Claude-modellen geweigerd (deprecated), dus niet doorgestuurd
   return out;
 }
 // Anthropic-SSE -> OpenAI-SSE (content / reasoning_content), zodat relay() en de pagina ongewijzigd blijven.
