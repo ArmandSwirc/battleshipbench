@@ -1,0 +1,807 @@
+{
+ "model": "openrouter/openai/gpt-6.1-sol",
+ "kind": "gauntlet",
+ "startedAt": "2026-10-30T11:14:53.499Z",
+ "boards": [
+  {
+   "seed": 11,
+   "shots": 48,
+   "finished": true,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       3,
+       2
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       3,
+       5
+      ],
+      [
+       3,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       0,
+       1
+      ],
+      [
+       0,
+       2
+      ],
+      [
+       0,
+       3
+      ],
+      [
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       5
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       9,
+       5
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       2,
+       1
+      ],
+      [
+       2,
+       2
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "miss",
+     "why": "A central opening covers many possible placements of every ship length."
+    },
+    {
+     "n": 2,
+     "cell": "F6",
+     "result": "miss",
+     "why": "F6 has the strongest remaining placement coverage without sharing the depleted row or column of E5."
+    },
+    {
+     "n": 3,
+     "cell": "D4",
+     "result": "hit",
+     "why": "D4 ties for the strongest remaining ship-placement coverage while avoiding both depleted rows and columns."
+    },
+    {
+     "n": 4,
+     "cell": "E4",
+     "result": "hit",
+     "why": "E4 is supported by the most plausible ship placements extending from D4."
+    },
+    {
+     "n": 5,
+     "cell": "F4",
+     "result": "hit",
+     "why": "F4 extends the two-hit line and is also supported by plausible touching-ship arrangements."
+    },
+    {
+     "n": 6,
+     "cell": "G4",
+     "result": "hit",
+     "why": "G4 tests a likely continuation of the unsunk three-hit line while retaining strong coverage of other possible ships."
+    },
+    {
+     "n": 7,
+     "cell": "C4",
+     "result": "sunk Carrier",
+     "why": "C4 tests one end of the likely carrier spanning the four unsunk hits."
+    },
+    {
+     "n": 8,
+     "cell": "D7",
+     "result": "miss",
+     "why": "D7 ties for the strongest placement coverage across the remaining ship lengths."
+    },
+    {
+     "n": 9,
+     "cell": "H7",
+     "result": "miss",
+     "why": "H7 has maximal remaining ship-placement coverage across the four unsunk ships."
+    },
+    {
+     "n": 10,
+     "cell": "G8",
+     "result": "miss",
+     "why": "G8 has the strongest placement coverage across the four remaining ships."
+    },
+    {
+     "n": 11,
+     "cell": "H3",
+     "result": "miss",
+     "why": "H3 ties for the strongest remaining ship-placement coverage and wins the row-order tiebreak."
+    },
+    {
+     "n": 12,
+     "cell": "C8",
+     "result": "miss",
+     "why": "C8 has the strongest remaining ship-placement coverage across the four unsunk ships."
+    },
+    {
+     "n": 13,
+     "cell": "I5",
+     "result": "miss",
+     "why": "I5 ties for the strongest remaining ship-placement coverage and wins the row-order tiebreak."
+    },
+    {
+     "n": 14,
+     "cell": "B6",
+     "result": "miss",
+     "why": "B6 ties for the strongest remaining ship-placement coverage and wins the row-order tiebreak."
+    },
+    {
+     "n": 15,
+     "cell": "E9",
+     "result": "miss",
+     "why": "E9 has the strongest remaining ship-placement coverage across the four unsunk ships."
+    },
+    {
+     "n": 16,
+     "cell": "B3",
+     "result": "hit",
+     "why": "B3 has the strongest normalized placement coverage across the four remaining ships."
+    },
+    {
+     "n": 17,
+     "cell": "B2",
+     "result": "miss",
+     "why": "B2 strongly supports ships through B3 while offering better coverage of other ships than the alternative neighbors."
+    },
+    {
+     "n": 18,
+     "cell": "C3",
+     "result": "sunk Destroyer",
+     "why": "C3 has the strongest support among legal ship placements through B3 after the miss at B2."
+    },
+    {
+     "n": 19,
+     "cell": "A5",
+     "result": "miss",
+     "why": "A5 ties for the strongest normalized placement coverage of the three remaining ships."
+    },
+    {
+     "n": 20,
+     "cell": "J6",
+     "result": "miss",
+     "why": "J6 ties for the strongest normalized placement coverage across the three remaining ships."
+    },
+    {
+     "n": 21,
+     "cell": "F10",
+     "result": "hit",
+     "why": "F10 has the highest normalized placement coverage for the three remaining ships."
+    },
+    {
+     "n": 22,
+     "cell": "G10",
+     "result": "miss",
+     "why": "G10 is strongly supported by the remaining horizontal ship placements through F10."
+    },
+    {
+     "n": 23,
+     "cell": "F9",
+     "result": "hit",
+     "why": "F9 tests the vertical ship through F10 and can also hit a separate ship if F10 belongs to a horizontal one."
+    },
+    {
+     "n": 24,
+     "cell": "F8",
+     "result": "sunk Submarine",
+     "why": "F8 extends the two vertical hits and is supported by most plausible ship assignments through F9 and F10."
+    },
+    {
+     "n": 25,
+     "cell": "D1",
+     "result": "hit",
+     "why": "D1 has the highest occupancy probability across compatible placements of the remaining battleship and cruiser."
+    },
+    {
+     "n": 26,
+     "cell": "C1",
+     "result": "hit",
+     "why": "C1 has the strongest support among compatible placements of the battleship and cruiser through D1."
+    },
+    {
+     "n": 27,
+     "cell": "B1",
+     "result": "hit",
+     "why": "B1 has the strongest support among compatible placements and could immediately sink the cruiser."
+    },
+    {
+     "n": 28,
+     "cell": "A1",
+     "result": "miss",
+     "why": "A1 ties for the highest hit probability and can immediately sink either the battleship or the cruiser."
+    },
+    {
+     "n": 29,
+     "cell": "E1",
+     "result": "sunk Battleship",
+     "why": "B1 must belong to the battleship spanning B1–E1, making E1 a guaranteed sinking shot."
+    },
+    {
+     "n": 30,
+     "cell": "F2",
+     "result": "miss",
+     "why": "F2 covers four of the 51 legal cruiser placements, tying for the highest hit probability."
+    },
+    {
+     "n": 31,
+     "cell": "I2",
+     "result": "miss",
+     "why": "I2 covers four of the 47 remaining cruiser placements, tying for the highest hit probability and winning the row-order tiebreak."
+    },
+    {
+     "n": 32,
+     "cell": "I8",
+     "result": "miss",
+     "why": "I8 covers four of the 43 remaining cruiser placements, tying for the highest hit probability and winning the row-order tiebreak."
+    },
+    {
+     "n": 33,
+     "cell": "B9",
+     "result": "miss",
+     "why": "B9 covers four of the 39 remaining cruiser placements, more than any other untried cell."
+    },
+    {
+     "n": 34,
+     "cell": "G1",
+     "result": "miss",
+     "why": "G1 covers three of the 35 remaining cruiser placements, tying for the highest hit probability."
+    },
+    {
+     "n": 35,
+     "cell": "J4",
+     "result": "miss",
+     "why": "J4 covers three remaining cruiser placements and preserves stronger follow-up coverage if it misses."
+    },
+    {
+     "n": 36,
+     "cell": "A7",
+     "result": "miss",
+     "why": "A7 covers three remaining cruiser placements while preserving strong follow-up coverage if it misses."
+    },
+    {
+     "n": 37,
+     "cell": "H9",
+     "result": "miss",
+     "why": "H9 covers three of the 26 remaining cruiser placements and leaves efficient follow-up shots."
+    },
+    {
+     "n": 38,
+     "cell": "D10",
+     "result": "miss",
+     "why": "D10 covers three of the 23 remaining cruiser placements and preserves stronger follow-up coverage if it misses."
+    },
+    {
+     "n": 39,
+     "cell": "J1",
+     "result": "miss",
+     "why": "J1 covers two of the 20 remaining cruiser placements while preserving efficient follow-up coverage."
+    },
+    {
+     "n": 40,
+     "cell": "E3",
+     "result": "miss",
+     "why": "E3 covers two of the 18 remaining cruiser placements and guarantees F3 is occupied if it hits."
+    },
+    {
+     "n": 41,
+     "cell": "C5",
+     "result": "miss",
+     "why": "C5 covers two of the 16 remaining cruiser placements and leaves efficient follow-up shots."
+    },
+    {
+     "n": 42,
+     "cell": "G5",
+     "result": "miss",
+     "why": "G5 covers two of the 14 remaining cruiser placements while preserving efficient follow-up coverage."
+    },
+    {
+     "n": 43,
+     "cell": "E6",
+     "result": "miss",
+     "why": "E6 covers two of the 12 remaining cruiser placements, tying for the highest hit probability."
+    },
+    {
+     "n": 44,
+     "cell": "H6",
+     "result": "miss",
+     "why": "H6 covers two of the ten remaining cruiser placements, tying for the highest hit probability."
+    },
+    {
+     "n": 45,
+     "cell": "J8",
+     "result": "hit",
+     "why": "J8 covers two of the eight remaining cruiser placements, tying for the best hit chance and allowing efficient follow-up shots."
+    },
+    {
+     "n": 46,
+     "cell": "J9",
+     "result": "hit",
+     "why": "J9 is occupied in both remaining cruiser placements through J8, making it a guaranteed hit."
+    },
+    {
+     "n": 47,
+     "cell": "J7",
+     "result": "miss",
+     "why": "J7 can sink the cruiser and wins the row-order tie between its two equally likely endpoints."
+    },
+    {
+     "n": 48,
+     "cell": "J10",
+     "result": "sunk Cruiser",
+     "why": "J10 is the cruiser’s only possible remaining cell and will sink it."
+    }
+   ]
+  },
+  {
+   "seed": 23,
+   "shots": 49,
+   "finished": true,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       2,
+       6
+      ],
+      [
+       3,
+       6
+      ],
+      [
+       4,
+       6
+      ],
+      [
+       5,
+       6
+      ],
+      [
+       6,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       8,
+       4
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       8,
+       6
+      ],
+      [
+       8,
+       7
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       1,
+       2
+      ],
+      [
+       1,
+       3
+      ],
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       5,
+       8
+      ],
+      [
+       6,
+       8
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "miss",
+     "why": "A central opening covers many possible placements of all five ships."
+    },
+    {
+     "n": 2,
+     "cell": "F6",
+     "result": "miss",
+     "why": "F6 retains maximum central ship coverage without sharing a row or column with the miss at E5."
+    },
+    {
+     "n": 3,
+     "cell": "D4",
+     "result": "miss",
+     "why": "D4 has strong coverage across all remaining ship lengths without sharing a row or column with either miss."
+    },
+    {
+     "n": 4,
+     "cell": "G7",
+     "result": "hit",
+     "why": "G7 has the highest remaining ship-placement coverage while avoiding rows and columns depleted by misses."
+    },
+    {
+     "n": 5,
+     "cell": "G6",
+     "result": "hit",
+     "why": "G6 is supported by the most viable ship placements extending from the hit at G7."
+    },
+    {
+     "n": 6,
+     "cell": "G5",
+     "result": "hit",
+     "why": "G5 extends the two aligned hits and could complete a three-cell ship."
+    },
+    {
+     "n": 7,
+     "cell": "G4",
+     "result": "hit",
+     "why": "G4 extends the three aligned hits and is supported by several possible carrier or battleship placements."
+    },
+    {
+     "n": 8,
+     "cell": "G3",
+     "result": "sunk Carrier",
+     "why": "G3 may complete the carrier and is also supported by split-ship explanations of the four-hit run."
+    },
+    {
+     "n": 9,
+     "cell": "C7",
+     "result": "miss",
+     "why": "C7 has the strongest estimated coverage across the remaining ship lengths in the open lower-left region."
+    },
+    {
+     "n": 10,
+     "cell": "D8",
+     "result": "miss",
+     "why": "D8 has the strongest remaining ship-placement coverage across its open row and long vertical run."
+    },
+    {
+     "n": 11,
+     "cell": "H8",
+     "result": "miss",
+     "why": "H8 has strong placement coverage for all remaining ship lengths in the open lower-right region."
+    },
+    {
+     "n": 12,
+     "cell": "C3",
+     "result": "miss",
+     "why": "C3 has the strongest weighted coverage of legal placements for the four remaining ships."
+    },
+    {
+     "n": 13,
+     "cell": "F2",
+     "result": "miss",
+     "why": "F2 ties for the highest weighted coverage of legal placements for the four remaining ships."
+    },
+    {
+     "n": 14,
+     "cell": "B6",
+     "result": "miss",
+     "why": "B6 ties for the highest weighted coverage of legal placements for the four remaining ships."
+    },
+    {
+     "n": 15,
+     "cell": "E9",
+     "result": "hit",
+     "why": "E9 has the strongest weighted coverage of legal placements for the four remaining ships."
+    },
+    {
+     "n": 16,
+     "cell": "F9",
+     "result": "hit",
+     "why": "F9 has strong support from ships extending through E9 and additional vertical placements."
+    },
+    {
+     "n": 17,
+     "cell": "G9",
+     "result": "hit",
+     "why": "G9 extends the two aligned hits and also has support from vertical ship placements."
+    },
+    {
+     "n": 18,
+     "cell": "H9",
+     "result": "sunk Battleship",
+     "why": "H9 extends the three-hit run and has stronger support because G9 has fewer viable vertical ship placements."
+    },
+    {
+     "n": 19,
+     "cell": "B9",
+     "result": "miss",
+     "why": "B9 has strong coverage for the remaining short ships across several low-conflict horizontal and vertical placements."
+    },
+    {
+     "n": 20,
+     "cell": "B2",
+     "result": "miss",
+     "why": "B2 has strong coverage for both remaining ship lengths across relatively low-conflict placements."
+    },
+    {
+     "n": 21,
+     "cell": "H2",
+     "result": "miss",
+     "why": "H2 has top-tier coverage for the remaining short ships and strong follow-up targets in both orientations."
+    },
+    {
+     "n": 22,
+     "cell": "I3",
+     "result": "miss",
+     "why": "I3 has top short-ship placement coverage and strong follow-up options in both orientations."
+    },
+    {
+     "n": 23,
+     "cell": "I7",
+     "result": "hit",
+     "why": "I7 has maximum short-ship coverage, with candidate placements that leave more room for the other ships."
+    },
+    {
+     "n": 24,
+     "cell": "I6",
+     "result": "sunk Destroyer",
+     "why": "I6 is supported by two three-cell extensions of I7 and has stronger additional ship coverage than I8."
+    },
+    {
+     "n": 25,
+     "cell": "H5",
+     "result": "miss",
+     "why": "H5 ties for the highest remaining ship coverage and offers strong vertical follow-ups."
+    },
+    {
+     "n": 26,
+     "cell": "A8",
+     "result": "miss",
+     "why": "A8 ties for the highest fleet-consistent occupancy and offers strong follow-up shots."
+    },
+    {
+     "n": 27,
+     "cell": "C10",
+     "result": "miss",
+     "why": "C10 has the highest occupancy across compatible placements of the two remaining three-cell ships."
+    },
+    {
+     "n": 28,
+     "cell": "J4",
+     "result": "miss",
+     "why": "J4 has the highest occupancy across compatible placements of the two remaining three-cell ships."
+    },
+    {
+     "n": 29,
+     "cell": "A4",
+     "result": "miss",
+     "why": "A4 ties for the highest occupancy across compatible placements of the two remaining three-cell ships."
+    },
+    {
+     "n": 30,
+     "cell": "D1",
+     "result": "miss",
+     "why": "D1 has the highest occupancy across compatible placements of the two remaining three-cell ships."
+    },
+    {
+     "n": 31,
+     "cell": "F10",
+     "result": "miss",
+     "why": "F10 offers high occupancy and the strongest expected hit coverage over the next two shots."
+    },
+    {
+     "n": 32,
+     "cell": "I10",
+     "result": "miss",
+     "why": "I10 has the highest fleet-consistent occupancy and strong follow-up targets in both orientations."
+    },
+    {
+     "n": 33,
+     "cell": "J7",
+     "result": "miss",
+     "why": "J7 ties for the highest occupancy across compatible placements of the two remaining three-cell ships."
+    },
+    {
+     "n": 34,
+     "cell": "G1",
+     "result": "miss",
+     "why": "G1 ties for maximum fleet-consistent occupancy and offers the strongest two-shot follow-up."
+    },
+    {
+     "n": 35,
+     "cell": "E2",
+     "result": "hit",
+     "why": "E2 has the highest occupancy across compatible placements of the two remaining three-cell ships."
+    },
+    {
+     "n": 36,
+     "cell": "E3",
+     "result": "miss",
+     "why": "E3 is shared by both possible vertical ships through E2, giving it the strongest hit support."
+    },
+    {
+     "n": 37,
+     "cell": "C2",
+     "result": "hit",
+     "why": "C2 is a guaranteed hit because the only possible ship through E2 occupies C2, D2, and E2."
+    },
+    {
+     "n": 38,
+     "cell": "D2",
+     "result": "sunk Submarine",
+     "why": "D2 is a guaranteed hit that completes the only possible three-cell ship through E2."
+    },
+    {
+     "n": 39,
+     "cell": "B5",
+     "result": "miss",
+     "why": "B5 covers three of the 16 possible cruiser placements and preserves better follow-up coverage than C5."
+    },
+    {
+     "n": 40,
+     "cell": "A1",
+     "result": "miss",
+     "why": "A1 covers two possible cruiser placements while preserving optimal follow-up coverage."
+    },
+    {
+     "n": 41,
+     "cell": "J1",
+     "result": "miss",
+     "why": "J1 covers two of the 11 remaining cruiser placements while preserving optimal follow-up coverage."
+    },
+    {
+     "n": 42,
+     "cell": "C6",
+     "result": "miss",
+     "why": "C6 covers two remaining cruiser placements while preserving optimal follow-up coverage."
+    },
+    {
+     "n": 43,
+     "cell": "D7",
+     "result": "miss",
+     "why": "D7 covers two of the seven possible cruiser placements while preserving the best follow-up coverage."
+    },
+    {
+     "n": 44,
+     "cell": "E8",
+     "result": "miss",
+     "why": "E8 covers two of the five remaining cruiser placements, giving the highest chance of a hit."
+    },
+    {
+     "n": 45,
+     "cell": "F3",
+     "result": "miss",
+     "why": "F3 tests one of the three equally likely remaining cruiser placements."
+    },
+    {
+     "n": 46,
+     "cell": "A5",
+     "result": "miss",
+     "why": "A5 tests one of the two remaining cruiser placements, A5–A7 and J8–J10."
+    },
+    {
+     "n": 47,
+     "cell": "J8",
+     "result": "hit",
+     "why": "J8 is a guaranteed hit in the only remaining cruiser placement, J8–J10."
+    },
+    {
+     "n": 48,
+     "cell": "J9",
+     "result": "hit",
+     "why": "J9 is a guaranteed hit in the only remaining cruiser placement, J8–J10."
+    },
+    {
+     "n": 49,
+     "cell": "J10",
+     "result": "sunk Cruiser",
+     "why": "J10 is a guaranteed hit that sinks the cruiser and completes the fleet."
+    }
+   ]
+  }
+ ],
+ "strategy": "OBJECTIVE AND RECORDKEEPING\nMinimize the total shots needed to sink all five ships. There are exactly 17 occupied cells, so avoiding misses is the main objective, but information that prevents later misses also matters. Maintain a precise board of untried cells, misses, and hits; the chronological shot results; the named ships sunk; and the remaining length multiset, initially {5,4,3,3,2}. Never repeat a shot. Recalculate after every result rather than following a predetermined sequence.\n\nNONNEGOTIABLE GEOMETRY\nShips are straight, horizontal or vertical, and cannot overlap. They MAY touch, including side by side and end to end. Never mark the neighbors of a sunk ship as water merely because they are adjacent. Adjacent hits need not belong to the same ship, and a long run of hits may contain several touching ships. Only actual misses, already occupied cells assigned to other ships, board boundaries, and the full observation history exclude placements.\n\nTHE UNDERLYING MODEL\nTreat complete legal fleet arrangements as equally likely initially; do not assume an undisclosed preference for edges, corners, or separation. Retain arrangements consistent with every observation. A miss must be empty. A plain hit must occupy a ship that was not yet completely hit on that turn. A named sinking result means that particular ship became completely hit on that shot, not earlier. Thus an unsunk ship cannot have all its cells among previously fired hits.\n\nUse the surviving arrangements to estimate p(x), the probability that an untried cell x contains an unsunk ship. Prefer joint fleet reasoning over independent ship counts: all observed hits must be explained simultaneously, ships must not overlap, and remaining ship multiplicities matter. Exact enumeration is not required for hand play, but these are the constraints every approximation must respect.\n\nA sinking announcement does not necessarily identify the whole footprint when ships touch. Retain every plausible footprint consistent with the named length and shot history. Do not arbitrarily assign all neighboring hits to the sunk ship. Track alternative assignments until further evidence resolves them. Within each alternative, only the hits not assigned to sunk ships need further targeting.\n\nSHOT SELECTION\nIf an untried cell is certainly occupied, take that guaranteed hit. Never choose a cell that cannot belong to any consistent remaining fleet.\n\nThe ideal decision minimizes expected remaining shots, not merely the chance of an immediate hit. If the remaining possibilities are small enough to solve, use V(S)=min_x[1+sum_o P(o|S,x)V(S after o)], with V=0 once the fleet is sunk; outcomes distinguish misses, ordinary hits, and named sinkings. This is especially valuable in small endgames.\n\nFor normal play, use the best reliable probability estimates available. If reliable conditional estimates permit two-shot lookahead, maximize p(x)+sum_o P(o|x) max_y p(y|o), recalculating after the actual result. Otherwise choose the largest p(x). Do not invent numerical precision or pretend to enumerate fleets that have not actually been considered. For essentially tied choices, prefer a likely sinking shot, then a shot that distinguishes important orientations or hit assignments, then the better search coverage. Break any remaining tie deterministically by row and then column. With an untouched board and no other information, open at E5.\n\nHUNTING: NO UNRESOLVED LIVE HITS\nBuild a heatmap from legal placements of the remaining ships. A placement must fit on the board, avoid misses and occupied sunk footprints, and be compatible with at least one explanation of the history. Recompute after each shot and each sinking; do not continue using the original fleet lengths.\n\nA concrete hand-computable approximation is W(x)=sum_l n_l C_l(x)/N_l. Here n_l is the number of remaining ships of length l, N_l is the number of currently viable horizontal and vertical placements for one such ship, and C_l(x) counts those placements containing x. Initially N_l=20(11-l). Normalizing by N_l avoids treating ships with different numbers of placements as though they had the same prior weight per placement. Count the two length-three ships separately through their multiplicity. Use joint-fleet compatibility to remove impossible placements whenever practical. Shoot the largest estimated occupancy, not merely the center of the largest-looking empty region.\n\nUse spacing as a coverage aid. Let k be the shortest remaining ship length. A diagonal residue pattern (column number + row number) mod k = r intersects every horizontal or vertical ship of length at least k. For k=2 this is a checkerboard; when the destroyer is gone, k may become 3 or larger. Favor a useful residue among otherwise comparable hunt shots and avoid wasting a sequence of misses on neighboring cells with heavily overlapping coverage. These patterns are not evidence that other cells are empty: do not reject a substantially better probability merely to preserve parity. Reassess the pattern when remaining lengths change. Centerward cells generally score well early, but depleted central lines and constrained edge placements can make edges preferable later.\n\nTARGETING: ONE OR MORE UNRESOLVED HITS\nImmediately condition on the hit. Consider all remaining ship lengths and every feasible placement containing it. The strongest next targets are usually orthogonal neighbors, but rank them by the support of those placements rather than using a fixed north/east/south/west order. A direction with insufficient available space for every possible ship is impossible. Misses and board edges are hard stops for that individual ship.\n\nFor a single isolated hit h, a useful local approximation is to count candidate placements containing both h and each proposed target x, weighting a placement of length l by n_l/N_l. Normalize over all candidate placements containing h if comparing this track with another hit track. This rewards directions supported by many plausible ships and lengths instead of guessing an orientation blindly. Include the possibility of other ships when estimating overall occupancy.\n\nAfter a second collinear hit, continuation along that line usually becomes best. Compare both ends using remaining lengths, misses, boundaries, and the number of legal ways each end can complete the ship. Fill an internal gap when the observations strongly support one ship spanning it. If an end misses, stop extending that hypothesized ship through it and investigate the other end. Do not abandon the original hit after just one unsuccessful neighbor probe.\n\nDo not make collinearity an irreversible commitment. Touching ships can produce misleading adjacent hits. Maintain alternative explanations whenever one ship cannot explain the observations or the evidence remains ambiguous. Never extend a supposed single ship beyond the longest remaining length. If a run reaches an expected length without a sinking announcement, reconsider its assignment instead of declaring it finished.\n\nWith several open hits, consider assignments of hits to the available ships. Collinear hits may share a ship only if a feasible placement spans them; noncollinear hits cannot share one straight ship. Distinct assignments must respect ship multiplicities and nonoverlap. Do not count the same candidate ship independently once for every hit it contains. Prefer shots supported across many assignments, especially forced gaps or high-probability endpoints. Work on whichever unresolved track offers the best expected progress, not automatically the oldest or newest hit. A shot supported by several otherwise different explanations is particularly valuable.\n\nFollowing a sinking, remove exactly the announced ship, update possible footprints, and recompute. Continue targeting any hits that may belong to another unsunk ship. Return to pure hunting only when no unresolved live hits remain. If targeting becomes weak and a hunt shot genuinely has better expected value, take the hunt shot; target mode is a probability advantage, not an obligation to shoot low-probability neighbors.\n\nENDGAME AND FINAL CHECK\nAs possibilities shrink, explicitly list the remaining placements and their compatible combinations. Exploit forced cells, eliminate impossible assignments, and use outcome lookahead where manageable. For the final ship, choose shots from its surviving placements, favoring those that cover many possibilities and leave easy follow-ups; do not continue a stale checkerboard unnecessarily. Before every shot verify: the cell is untried, some consistent remaining ship can occupy it, touching has not been incorrectly forbidden, all open hits are accounted for, and the current remaining lengths—not the original fleet—were used. Stop immediately after all five named ships are sunk.",
+ "strategyName": "Posterior Crossfire"
+}
