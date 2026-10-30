@@ -1,0 +1,5 @@
+{
+  "providers": [
+    { "id": "anthropic", "name": "Anthropic", "baseUrl": "https://api.anthropic.com/v1", "apiKey": "sk-ant-…", "models": ["claude-haiku-5-5"] }
+  ]
+}
