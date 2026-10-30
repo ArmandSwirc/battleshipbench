@@ -580,7 +580,10 @@ async function takeTurn(k, free) {
   if (r) { move = r.value; why = String(r.parsed.why ?? "").slice(0, 240); }
   else {
     const free = []; for (let y=0;y<SIZE;y++) for (let x=0;x<SIZE;x++) if (!foe.shots[y][x]) free.push([y,x]);
-    const par = free.filter(([y,x]) => (y+x)%2===0), pool = par.length ? par : free;
+    // geen blinde gok midden in een jacht: eerst de vrije buren van open treffers (in het verlengde van twee treffers eerst), anders pariteit
+    const open = []; for (let y=0;y<SIZE;y++) for (let x=0;x<SIZE;x++) { const sh = foe.shots[y][x]; if (sh && sh !== "miss" && sh !== "sunk") open.push([y,x]); }
+    const near = free.filter(([y,x]) => open.some(([oy,ox]) => Math.abs(oy-y)+Math.abs(ox-x) === 1)), inLine = near.filter(([y,x]) => open.some(([oy,ox]) => { const dy = y-oy, dx = x-ox, py = oy-dy, px = ox-dx; return foe.shots[py]?.[px] && foe.shots[py][px] !== "miss" && foe.shots[py][px] !== "sunk"; }));
+    const par = free.filter(([y,x]) => (y+x)%2===0), pool = inLine.length ? inLine : near.length ? near : par.length ? par : free;
     move = pool[Math.floor(Math.random()*pool.length)]; fallback = true; why = "Geen geldig antwoord na 3 pogingen: willekeurige zet door het spel.";
   }
   if (fallback) me.fallbacks++;

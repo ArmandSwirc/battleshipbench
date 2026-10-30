@@ -56,7 +56,8 @@ async function* fromAnthropic(up) {
       } else if (j.type === "content_block_delta") {
         if (j.delta?.text) yield sse({ content: j.delta.text });
         else if (j.delta?.thinking) yield sse({ reasoning_content: j.delta.thinking });
-      } else if (j.type === "error") yield sse({ content: `[Anthropic-fout: ${j.error?.message ?? "onbekend"}]` });
+      } else if (j.type === "message_delta" && j.delta?.stop_reason && j.delta.stop_reason !== "end_turn") console.error(`[anthropic] stop_reason=${j.delta.stop_reason} out=${j.usage?.output_tokens ?? "?"}`);
+      else if (j.type === "error") yield sse({ content: `[Anthropic-fout: ${j.error?.message ?? "onbekend"}]` });
     }
   }
   yield "data: [DONE]\n\n";
