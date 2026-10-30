@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import { saveBoard, publish } from "./results.mjs";
 
 const SIZE = 10, FLEET = [["Carrier", 5], ["Battleship", 4], ["Cruiser", 3], ["Submarine", 3], ["Destroyer", 2]];
-const MAX_SHOTS = 100, MIN_SHOTS = 17, SEEDS = [11, 23, 37, 41, 59, 61, 73, 89, 97, 101];
+const MAX_SHOTS = 100, MIN_SHOTS = 17, SEEDS = [11, 23, 37, 41, 59, 61, 73, 89, 97, 101], GAUNTLET = 3; // Gauntlet = de eerste 3 borden
 const SERVER = process.env.BENCH_SERVER ?? "http://127.0.0.1:8793";
 const BENCH = fileURLToPath(new URL("./bench.jsonl", import.meta.url));
 const MATCHES = fileURLToPath(new URL("./matches.jsonl", import.meta.url));
@@ -21,6 +21,7 @@ const LIVE = { status: "idle", shots: [], results: [], think: "", pid: process.p
 for (const sig of ["SIGTERM", "SIGINT"]) process.on(sig, () => { LIVE.status = "stopped"; flush(true); process.exit(130); });
 let lastFlush = 0;
 function flush(force) {
+  if (process.argv[2] === "bots") return; // bots mogen de live-bestanden van lopende benches niet overschrijven
   const t = Date.now(); if (!force && t - lastFlush < 300) return; lastFlush = t;
   LIVE.updatedAt = new Date().toISOString();
   try { writeFileSync(LIVE_FILE + ".tmp", JSON.stringify(LIVE)); renameSync(LIVE_FILE + ".tmp", LIVE_FILE); } catch {}
@@ -106,12 +107,31 @@ async function playBot(fn, seed) {
 
 // ---- model-speler (via server.mjs) ----
 const THINK = Number(process.env.BENCH_THINK ?? 4000); // denk-tokens per schot
-const SYSTEM = `You play Battleship (10x10, columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight, never overlap, and may touch. Fire one shot per turn at a cell not yet fired at. You have a thinking budget of ${THINK} tokens per shot. Reach a decision well within it, and as you reason always keep a current best move in mind. When the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object: {"move":"E5"}`;
+const SYSTEM = `You play Battleship on a 10x10 board (columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight (horizontal or vertical), never overlap, and may touch each other. Fire one shot per turn at a cell not yet fired at. Fewer shots is better.
+
+Board legend: . unknown, o miss, X hit on a ship that is NOT sunk yet, S hit on a ship that IS sunk (finished, ignore it, but an X next to an S can belong to another ship). Each turn you also get the unresolved hits (all X cells), the remaining ships and the smallest remaining ship, so never spend thinking on working out which hit belongs to which ship.
+
+Work through these steps every turn, in order, and keep your thinking short:
+
+STEP 1 - Pick the mode. Read the "Unresolved hits" line. If it lists any cell: TARGET mode. If it says none: HUNT mode. Write the mode down and go to its step.
+
+STEP 2a - TARGET mode (finish the open ship, never wander off):
+  - Two or more unresolved hits in a straight line: the ship runs along that line. Fire the next "." cell at either end of the line. If both ends are blocked (miss, S or edge), the hits belong to different ships: treat each hit on its own.
+  - A single unresolved hit: fire one of its four neighbours. Prefer the neighbour with the most free "." cells in a row, enough for the largest remaining ship.
+  - Do not leave TARGET mode until Unresolved hits is empty.
+
+STEP 2b - HUNT mode (find a new ship efficiently):
+  - Fire a cell where a remaining ship can still fit in a straight line over "." cells. Skip boxed-in cells where not even the smallest remaining ship fits.
+  - Use a checkerboard: every other cell, spaced by the smallest remaining ship, so no ship can hide between your shots. Prefer the centre, avoid corners and edges early.
+
+STEP 3 - Check and answer. The cell must be "." (never o, X or S). Then reply with the JSON.
+
+Thinking: your budget is ${THINK} tokens per shot. Decide quickly, and always keep a current best move in mind. If the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object: {"move":"E5"}`;
 const render = (b) => {
-  const rows = ["   " + COLS.split("").join(" ")];
-  for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s) => (!s ? "." : s.result === "miss" ? "o" : "X")).join(" "));
+  const rows = ["   " + COLS.split("").join(" ")], open_ = [], sunkCell = (y, x) => b.grid[y][x] >= 0 && b.ships[b.grid[y][x]].hits === b.ships[b.grid[y][x]].len;
+  for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s, x) => { if (!s) return "."; if (s.result === "miss") return "o"; if (sunkCell(y, x)) return "S"; open_.push(cell(y, x)); return "X"; }).join(" "));
   const sunk = b.ships.filter((s) => s.hits === s.len).map((s) => s.name);
-  return `Board (. unknown, o miss, X hit):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nShots fired: ${b.count}. Your move, JSON only.`;
+  return `Board (. unknown, o miss, X hit on a ship not yet sunk, S hit on a sunk ship):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nUnresolved hits: ${open_.join(", ") || "none (HUNT mode)"}. Smallest remaining ship: ${Math.min(...b.ships.filter((s) => s.hits < s.len).map((s) => s.len))}.\nShots fired: ${b.count}. Your move, JSON only.`;
 };
 let lastAsk = { cut: false, tok: 0, ms: 0 };
 async function ask(model, user) {
@@ -175,7 +195,7 @@ async function bench(name, fn, boards) {
     LIVE.results.push({ seed: s, shots: r.shots, fallbacks: r.fallbacks }); flush(true);
   }
   const avg = res.reduce((a, r) => a + r.shots, 0) / res.length;
-  const rec = { ts: new Date().toISOString(), name, boards: seeds.length, avgShots: Math.round(avg * 10) / 10, score: score(avg), fallbacks: res.reduce((a, r) => a + r.fallbacks, 0), bot: !name.includes("/") };
+  const rec = { ts: new Date().toISOString(), name, boards: seeds.length, avgShots: Math.round(avg * 10) / 10, score: score(avg), fallbacks: res.reduce((a, r) => a + r.fallbacks, 0), bot: !name.includes("/"), perSeed: LIVE.results };
   appendFileSync(BENCH, JSON.stringify(rec) + "\n");
   Object.assign(LIVE, { status: "done", final: rec }); flush(true);
   console.log(`${name}: avg ${rec.avgShots} shots · score ${rec.score}`);
@@ -183,8 +203,17 @@ async function bench(name, fn, boards) {
 
 function readJsonl(f) { return existsSync(f) ? readFileSync(f, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : []; }
 function readme() {
-  const best = new Map();
-  for (const r of readJsonl(BENCH)) { const o = best.get(r.name); if (!o || r.boards > o.boards || (r.boards === o.boards && r.ts > o.ts)) best.set(r.name, r); }
+  const best = new Map(), liveFinals = ["./bench-live.json", "./bench-live-b.json"].map((f) => { try { return JSON.parse(readFileSync(fileURLToPath(new URL(f, import.meta.url)), "utf8")); } catch { return {}; } });
+  const recs = readJsonl(BENCH); // gestopte runs (geen record) tellen mee zodra de eerste GAUNTLET borden klaar zijn
+  for (const l of liveFinals) if (l.name && l.status === "stopped" && !recs.some((r) => r.name === l.name && r.ts > l.startedAt)) recs.push({ ts: l.updatedAt, name: l.name, boards: l.results?.length, bot: !l.name.includes("/"), perSeed: l.results });
+  for (let r of recs) { // altijd scoren op de eerste GAUNTLET borden, ook voor runs die met meer borden gespeeld zijn
+    if (r.boards !== GAUNTLET || !r.perSeed) {
+      const per = r.perSeed ?? liveFinals.find((l) => l.final?.ts === r.ts && l.final?.name === r.name)?.results;
+      if (per) { const p = SEEDS.slice(0, GAUNTLET).map((s) => per.find((x) => x.seed === s)); if (p.every(Boolean)) { const avg = p.reduce((a, x) => a + x.shots, 0) / GAUNTLET; r = { ...r, boards: GAUNTLET, avgShots: Math.round(avg * 10) / 10, score: score(avg), fallbacks: p.reduce((a, x) => a + x.fallbacks, 0) }; } }
+    }
+    if (r.boards !== GAUNTLET) continue;
+    const o = best.get(r.name); if (!o || r.ts > o.ts) best.set(r.name, r);
+  }
   const g = [...best.values()].sort((a, b) => b.score - a.score);
   const gauntlet = ["| # | Model | Score | Avg shots | Boards | Auto-moves |", "|--:|---|--:|--:|--:|--:|",
     ...g.map((r, i) => `| ${i + 1} | ${r.bot ? "🤖 " : ""}${r.name.replace(/^[^/]+\//, "")} | **${r.score}** | ${r.avgShots} | ${r.boards} | ${r.fallbacks} |`)].join("\n");
@@ -206,10 +235,10 @@ function readme() {
 }
 
 const [cmd, model, ...rest] = process.argv.slice(2);
-const boards = Math.min(SEEDS.length, Number(rest[rest.indexOf("--boards") + 1]) || 5);
+const boards = Math.min(SEEDS.length, Number(rest[rest.indexOf("--boards") + 1]) || GAUNTLET);
 if (cmd === "bots") {
-  await bench("Random bot", (s) => playBot(botRandom, s), SEEDS.length);
-  await bench("Probability bot", (s) => playBot(botProb, s), SEEDS.length);
+  await bench("Random bot", (s) => playBot(botRandom, s), GAUNTLET);
+  await bench("Probability bot", (s) => playBot(botProb, s), GAUNTLET);
   readme();
 } else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards); readme(); try { console.log(publish(`results: ${model}`)); } catch (e) { console.log(`publish failed: ${e.message.split("\n")[0]}`); } }
 else if (cmd === "boards") await genBoards();

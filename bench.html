@@ -33,57 +33,89 @@ pre{margin:0;white-space:pre-wrap;word-break:break-word;font:12px/1.5 var(--mono
 nav{margin-left:8px;display:flex;gap:6px}nav a{font:12px var(--mono);color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:3px;padding:3px 9px}nav a:hover{border-color:var(--ink-3)}
 details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}details p{margin:10px 0 0}
 .score{font:600 40px var(--mono);color:var(--b);letter-spacing:-.03em}
+.turn{display:flex;align-items:center;gap:10px;font:600 14px var(--mono);color:var(--ink);margin:0 0 10px;padding:8px 12px;border-radius:4px;border-left:4px solid var(--a);background:var(--sunk)}.turn small{font:12px var(--mono);color:var(--ink-3);margin-left:auto}
+.turn.flash{animation:fl 1.2s ease-out}@keyframes fl{0%{background:var(--a);color:#fff}100%{background:var(--sunk)}}
+.c.last{outline:2px solid var(--a);outline-offset:1px}.m.last{outline:2px solid var(--a)}
 .col{display:flex;flex-direction:column;gap:16px}
+main{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,480px));justify-content:center;gap:24px;padding:24px;margin:auto}
+.panel.empty section{display:none}.ph select,.go{font:12px var(--mono);background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:4px 8px}.ph .model{max-width:260px;min-width:0}.go{cursor:pointer;color:var(--b);border-color:var(--b)}.go:disabled{opacity:.4;cursor:default}.panel .grid{max-width:420px;margin:0 auto}.stop{font:12px var(--mono);color:var(--bad);background:none;border:1px solid var(--bad);border-radius:3px;padding:3px 9px;cursor:pointer}.stop:hover{background:var(--bad);color:#fff}.stop[hidden]{display:none}.panel pre{height:220px;max-height:220px;overflow:auto}
+.panel{display:flex;flex-direction:column;gap:16px;min-width:0}.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ph .slot{font:600 15px var(--mono);color:var(--ink-3)}.ph .upd{margin-left:auto}
+.about{max-width:900px;margin:0 auto;padding:0 24px 24px}
 </style></head><body>
 <header><h1>Battleship<b>Bench</b> <span style="font-weight:400;color:var(--ink-3)">· Gauntlet live</span></h1>
-<nav><a href="/">← 1v1 arena</a></nav><span class="pill" id="model">–</span><span class="pill" id="state">idle</span><span style="margin-left:auto" class="pill" id="upd"></span></header>
-<main>
-<div class="col"><section class="card"><h2>Board <span id="bseed"></span></h2><div class="grid" id="grid"></div>
-<div class="fleet" id="fleet"></div><p style="margin:12px 0 0;font:12px var(--mono);color:var(--ink-3)">Ships are shown for you only; the model sees just its own shots.</p></section>
-<section class="card"><details><summary>How the boards are made</summary>
-<p><b>Fixed &amp; shared.</b> All models play the same 10 boards (<code>boards.json</code>), so scores are comparable and reproducible.</p>
+<nav><a href="/">← 1v1 arena</a></nav></header>
+<main id="main"></main>
+<div class="about"><section class="card"><details><summary>How the boards are made</summary>
+<p><b>Fixed &amp; shared.</b> All models play the same first 3 boards of <code>boards.json</code>, so scores are comparable and reproducible.</p>
 <p><b>Difficult.</b> For each board, 300 random legal fleets were generated and each was played by the probability-density bot (3 times). The fleet that bot needed the most shots to find was kept. Fleets hide where density heuristics look least.</p>
 <p><b>Realistic.</b> Only plausible fleets qualify: standard fleet (5-4-3-3-2), ships straight and non-overlapping, may touch, 2-3 horizontal ships (mixed orientation), at most 2 ships flush against the border.</p>
 <p><b>Score.</b> 100 × (100 − avg shots) / 83. 100 = 17 shots; 0 = not finished in 100.</p></details></section></div>
-<div class="col">
+<template id="tpl"><section class="panel">
+<div class="ph"><b class="slot"></b><select class="model"></select><select class="nb"><option>1</option><option>3</option><option selected>5</option><option>10</option></select><button class="go">▶ Start</button><button class="stop" hidden>■ Stop</button><span class="pill state">idle</span><span class="pill upd"></span></div>
+<section class="card"><h2>Board <span class="bseed"></span></h2><div class="grid"></div>
+<div class="fleet"></div></section>
+ <section class="card"><h2>Thinking <span class="tk"></span></h2><div class="turn" hidden><span class="tn"></span><small class="tl"></small></div><pre class="think">–</pre></section>
  <section class="card"><div class="stats">
-  <div class="stat"><b id="n">0</b><span>shots</span></div><div class="stat"><b id="h">0</b><span>hits</span></div>
-  <div class="stat"><b id="acc">–</b><span>accuracy</span></div><div class="stat"><b id="fb">0</b><span>auto-moves</span></div></div>
-  <h2>Fleet sunk <span id="sunk"></span></h2><div class="bar"><div id="bp"></div></div>
-  <h2>Boards <span id="bc"></span></h2><div class="chips" id="chips"></div></section>
- <section class="card" id="final" hidden><h2>Result</h2><div class="score" id="fs"></div><div id="fd" style="color:var(--ink-2)"></div></section>
- <section class="card"><h2>Thinking <span id="tk"></span></h2><pre id="think">–</pre></section>
- <section class="card"><h2>Moves</h2><div class="log" id="log"></div></section>
-</div></main>
+  <div class="stat"><b class="n">0</b><span>shots</span></div><div class="stat"><b class="h">0</b><span>hits</span></div>
+  <div class="stat"><b class="acc">–</b><span>accuracy</span></div><div class="stat"><b class="fb">0</b><span>auto-moves</span></div></div>
+  <h2>Fleet sunk <span class="sunkn"></span></h2><div class="bar"><div class="bp"></div></div>
+  <h2>Boards <span class="bc"></span></h2><div class="chips"></div></section>
+ <section class="card final" hidden><h2>Result</h2><div class="score fs"></div><div class="fd" style="color:var(--ink-2)"></div></section>
+ <section class="card"><h2>Moves</h2><div class="log"></div></section>
+
+</section></template>
 <script>
 const $=s=>document.querySelector(s),COLS="ABCDEFGHIJ",COL={Carrier:"#6f9be0",Battleship:"#a98be0",Cruiser:"#3fb8a4",Submarine:"#d9b24a",Destroyer:"#e07aa8"};
-const g=$("#grid");g.innerHTML="<i></i>"+[...COLS].map(c=>`<i>${c}</i>`).join("");
-for(let r=0;r<10;r++){g.insertAdjacentHTML("beforeend",`<i>${r+1}</i>`);for(let c=0;c<10;c++)g.insertAdjacentHTML("beforeend",`<div class="c" id="c${r}_${c}"></div>`)}
-async function tick(){
- let s;try{s=await (await fetch("/api/bench/live",{cache:"no-store"})).json()}catch{return}
- $("#model").textContent=s.name??"–";
- const st=$("#state");st.textContent=s.status;st.className="pill "+(s.status==="done"?"done":s.status==="idle"?"":"live");
- if(s.updatedAt)$("#upd").textContent=new Date(s.updatedAt).toLocaleTimeString();
+const SLOTS=["a","b"],P={};
+const tpl=$("#tpl");
+function mk(slot){const el=tpl.content.firstElementChild.cloneNode(true),q=c=>el.querySelector("."+c);
+ const g=q("grid");g.innerHTML="<i></i>"+[...COLS].map(c=>`<i>${c}</i>`).join("");
+ for(let r=0;r<10;r++){g.insertAdjacentHTML("beforeend",`<i>${r+1}</i>`);for(let c=0;c<10;c++)g.insertAdjacentHTML("beforeend",`<div class="c" data-r="${r}" data-c="${c}"></div>`)}
+ q("stop").onclick=()=>fetch("/api/bench/stop?slot="+slot,{method:"POST"});
+ q("slot").textContent=slot.toUpperCase();
+ q("go").onclick=()=>fetch("/api/bench/start?slot="+slot,{method:"POST",headers:{"content-type":"application/json"},body:JSON.stringify({model:q("model").value,boards:q("nb").value})});
+ return {el,q,slot}}
+const LASTHL=new Map();
+function render(P,s){
+ const q=P.q,el=P.el;
+ const running=!!s.alive&&!["done","stopped","idle"].includes(s.status),stale=!s.alive&&["starting","thinking","firing"].includes(s.status),stat=stale?"stopped":s.status;
+ el.classList.toggle("empty",!s.cells);
+ const md=q("model");if(s.name&&(running||!md.dataset.set)&&[...md.options].some(o=>o.value===s.name)){md.value=s.name;md.dataset.set=running?"":"1"}
+ md.disabled=q("nb").disabled=running;q("go").disabled=running;q("go").textContent=s.cells?"↻ Restart":"▶ Start";q("stop").hidden=!running;
+ const st=q("state");st.textContent=stat==="thinking"&&s.turn?`shot ${s.turn} · thinking`:stat;st.className="pill state "+(stat==="done"?"done":running?"live":"");
+ if(s.updatedAt)q("upd").textContent=new Date(s.updatedAt).toLocaleTimeString();
  if(!s.cells)return;
- $("#bseed").textContent=`· ${s.boardIdx}/${s.boards} (seed ${s.seed})`;
+ const tu=q("turn");tu.hidden=!s.turn||s.status==="done";
+ if(s.turn){const key=s.boardIdx+"/"+s.turn;if(tu.dataset.k!==key){tu.dataset.k=key;tu.classList.remove("flash");void tu.offsetWidth;tu.classList.add("flash")}
+  q("tn").textContent=`▶ Board ${s.boardIdx}/${s.boards} · Shot ${s.turn}`;const l=s.shots[s.shots.length-1];q("tl").textContent=l?`last: ${l.cell} ${l.result.startsWith("sunk")?"sunk "+l.result.slice(5):l.result}`:"first shot"}
+ q("bseed").textContent=`· ${s.boardIdx}/${s.boards} (seed ${s.seed})`;
  const hitsOf=s.fleet.map(()=>0);
  for(let r=0;r<10;r++)for(let c=0;c<10;c++){const i=s.shipGrid[r][c];if(i>=0&&s.cells[r][c]==="X")hitsOf[i]++}
- for(let r=0;r<10;r++)for(let c=0;c<10;c++){const e=$(`#c${r}_${c}`),v=s.cells[r][c],i=s.shipGrid[r][c];
-  e.className="c"+(i>=0?" sh":"")+(v?" "+v:"")+(i>=0&&hitsOf[i]===s.fleet[i].len?" sunk":"");
+ const last=s.shots[s.shots.length-1]?.cell;
+ for(let r=0;r<10;r++)for(let c=0;c<10;c++){const e=q("grid").querySelector(`[data-r="${r}"][data-c="${c}"]`),v=s.cells[r][c],i=s.shipGrid[r][c];
+  e.className="c"+(i>=0?" sh":"")+(v?" "+v:"")+(i>=0&&hitsOf[i]===s.fleet[i].len?" sunk":"")+(last===COLS[c]+(r+1)?" last":"");
   if(i>=0){e.style.setProperty("--sc",COL[s.fleet[i].name])}else{e.style.removeProperty("--sc")}
   delete e.dataset.l;delete e.dataset.v;e.style.removeProperty("--n");
   if(i>=0&&(r===0||s.shipGrid[r-1][c]!==i)&&(c===0||s.shipGrid[r][c-1]!==i)){const v=r<9&&s.shipGrid[r+1][c]===i;e.dataset.l=s.fleet[i].name;e.style.setProperty("--n",s.fleet[i].len);if(v)e.dataset.v=""}}
- $("#fleet").innerHTML=s.fleet.map((f,i)=>`<div class="fl${hitsOf[i]===f.len?" dead":""}" style="--sc:${COL[f.name]}"><b>${f.name}</b><span class="sw">${Array.from({length:f.len},(_,k)=>`<i class="${k<hitsOf[i]?"x":""}"></i>`).join("")}</span><span>${hitsOf[i]===f.len?"sunk":hitsOf[i]+"/"+f.len}</span></div>`).join("")
+ q("fleet").innerHTML=s.fleet.map((f,i)=>`<div class="fl${hitsOf[i]===f.len?" dead":""}" style="--sc:${COL[f.name]}"><b>${f.name}</b><span class="sw">${Array.from({length:f.len},(_,k)=>`<i class="${k<hitsOf[i]?"x":""}"></i>`).join("")}</span><span>${hitsOf[i]===f.len?"sunk":hitsOf[i]+"/"+f.len}</span></div>`).join("");
  const n=s.shots.length,h=s.shots.filter(x=>x.result!=="miss").length;
- $("#n").textContent=n;$("#h").textContent=h;$("#acc").textContent=n?Math.round(100*h/n)+"%":"–";$("#fb").textContent=s.fallbacks??0;
- $("#sunk").textContent=`${s.sunk.length}/5`;$("#bp").style.width=(s.sunk.length*20)+"%";
- const dn=s.results.length;$("#bc").textContent=`· ${dn}/${s.boards} done`;
- $("#chips").innerHTML=s.results.map((r,i)=>`<span class="chip">#${i+1} · ${r.shots} shots</span>`).join("")+(s.status!=="done"?`<span class="chip cur">#${dn+1} · ${n} shots…</span>`:"");
+ q("n").textContent=n;q("h").textContent=h;q("acc").textContent=n?Math.round(100*h/n)+"%":"–";q("fb").textContent=s.fallbacks??0;
+ q("sunkn").textContent=`${s.sunk.length}/5`;q("bp").style.width=(s.sunk.length*20)+"%";
+ const dn=s.results.length;q("bc").textContent=`· ${dn}/${s.boards} done`;
+ q("chips").innerHTML=s.results.map((r,i)=>`<span class="chip">#${i+1} · ${r.shots} shots</span>`).join("")+(s.status!=="done"?`<span class="chip cur">#${dn+1} · ${n} shots…</span>`:"");
  const t=s.askStart&&s.status==="thinking"?Math.round((Date.now()-s.askStart)/1000)+"s · ":"";
- $("#tk").textContent=s.thinkChars?`· ${t}${s.thinkChars} chars`:"";
- const th=$("#think");if(s.think&&th.textContent!==s.think){th.textContent=s.think;th.scrollTop=th.scrollHeight}else if(!s.think)th.textContent="–";
- $("#log").innerHTML=s.shots.map(x=>`<span class="m ${x.result.startsWith("sunk")?"sunk":x.result==="hit"?"hit":""}">${x.cell}${x.result==="miss"?"":x.result.startsWith("sunk")?" ✕ "+x.result.slice(5):" ✕"}</span>`).join("");
- const f=$("#final");f.hidden=!s.final;if(s.final){$("#fs").textContent=s.final.score;$("#fd").textContent=`score 0–100 · avg ${s.final.avgShots} shots over ${s.final.boards} boards · ${s.final.fallbacks} auto-moves`}
+ q("tk").textContent=s.thinkChars?`· ${t}${s.thinkMax?`${s.thinkTok} / ${s.thinkMax} tokens`:`${s.thinkChars} chars`}`:"";
+ const th=q("think");if(s.think&&th.textContent!==s.think){th.textContent=s.think;th.scrollTop=th.scrollHeight}else if(!s.think)th.textContent="–";
+ q("log").innerHTML=s.shots.map((x,i)=>`<span class="m ${x.result.startsWith("sunk")?"sunk":x.result==="hit"?"hit":""}${i===n-1?" last":""}">${x.cell}${x.result==="miss"?"":x.result.startsWith("sunk")?" ✕ "+x.result.slice(5):" ✕"}</span>`).join("");
+ const f=q("final");f.hidden=!s.final;if(s.final){q("fs").textContent=s.final.score;q("fd").textContent=`score 0–100 · avg ${s.final.avgShots} shots over ${s.final.boards} boards · ${s.final.fallbacks} auto-moves`}
 }
-tick();setInterval(tick,600);
+const PANELS={};
+for(const sl of SLOTS){PANELS[sl]=mk(sl);$("#main").appendChild(PANELS[sl].el)}
+fetch("/api/models").then(r=>r.json()).then(gs=>{const opts=gs.flatMap(g=>g.models.map(m=>`<option value="${g.id}/${m}">${g.id}/${m}</option>`)).join("");
+ for(const sl of SLOTS){PANELS[sl].q("model").innerHTML=opts}});
+async function tick(slot){
+ let s;try{s=await (await fetch("/api/bench/live?slot="+slot,{cache:"no-store"})).json()}catch{return}
+ render(PANELS[slot],s);
+}
+for(const sl of SLOTS)setInterval(()=>tick(sl),600);
 </script></body></html>

@@ -34,7 +34,9 @@ const authHeaders = (p) => !p.apiKey ? {} : isAnthropic(p) ? { "x-api-key": p.ap
 function toAnthropic(body) {
   const system = body.messages.filter((m) => m.role === "system").map((m) => m.content).join("\n\n");
   const out = { model: body.model, max_tokens: body.max_tokens ?? 4096, stream: true, messages: body.messages.filter((m) => m.role !== "system") };
-  if (system) out.system = system;
+  // Expliciet breekpunt op de system-prompt (vast deel). Wordt stil genegeerd onder de minimumlengte van het model (512-4096 tokens).
+  // Bewust geen automatische cache_control bovenaan: die zou het wisselende bord elke beurt als 1,25x-schrijfactie cachen zonder ooit te lezen.
+  if (system) out.system = [{ type: "text", text: system, cache_control: { type: "ephemeral" } }];
   // temperature wordt door nieuwere Claude-modellen geweigerd (deprecated), dus niet doorgestuurd
   return out;
 }
@@ -48,7 +50,10 @@ async function* fromAnthropic(up) {
       const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
       if (!line.startsWith("data:")) continue;
       let j; try { j = JSON.parse(line.slice(5)); } catch { continue; }
-      if (j.type === "content_block_delta") {
+      if (j.type === "message_start" && j.message?.usage) {
+        const u = j.message.usage;
+        console.error(`[cache] ${j.message.model} in=${u.input_tokens} write=${u.cache_creation_input_tokens ?? 0} read=${u.cache_read_input_tokens ?? 0}`);
+      } else if (j.type === "content_block_delta") {
         if (j.delta?.text) yield sse({ content: j.delta.text });
         else if (j.delta?.thinking) yield sse({ reasoning_content: j.delta.thinking });
       } else if (j.type === "error") yield sse({ content: `[Anthropic-fout: ${j.error?.message ?? "onbekend"}]` });
@@ -175,7 +180,7 @@ async function handle(req, res) {
     const slot = slotOf(req), body = await readBody(req), live = readLive(slot);
     if (live && alive(live.pid)) return json(res, 409, { error: { message: `slot ${slot} draait al` } });
     if (!/^[\w.\-]+\/\S+$/.test(String(body.model ?? ""))) return json(res, 400, { error: { message: "model ontbreekt" } });
-    const boards = Math.min(10, Math.max(1, Number(body.boards) || 5));
+    const boards = Math.min(10, Math.max(1, Number(body.boards) || 3));
     try { writeFileSync(liveFile(slot), JSON.stringify({ status: "starting", name: body.model, shots: [], results: [], think: "" })); } catch {}
     const child = spawn(process.execPath, ["bench.mjs", "run", body.model, "--boards", String(boards), "--slot", slot], { cwd: fileURLToPath(new URL(".", import.meta.url)), detached: true, stdio: "ignore", env: { ...process.env, BENCH_SERVER: `http://127.0.0.1:${PORT}` } });
     child.unref();
