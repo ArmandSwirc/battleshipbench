@@ -73,6 +73,8 @@ Caveat: boards are tuned against the density bot, which makes the bot a *harsh* 
 
 Two models play each other, each one placing its own fleet. Every finished game updates an **Elo** rating (start 1000, K = 32): beating a stronger model earns more than beating a weaker one. Swap sides across games to cancel out the first-move advantage. Also tracked per model: win rate, average shots per win, accuracy (hits / shots) and auto-moves.
 
+**Dossier mode** (default): before a game each model receives a dossier on its opponent, built only from what it could observe in earlier games against it: where the opponent placed its fleet, how it shoots (opening shots, hit rate, parity), the results, and the model's own notes. After the game each model writes a short lesson for next time, which comes back in the next dossier. Never the opponent's strategy text or reasoning. Every game is saved under `results/arena/<A>_vs_<B>/` with the dossier it got, its strategy, its lesson and every shot with reasoning.
+
 ## Run it
 
 ```bash

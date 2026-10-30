@@ -134,7 +134,7 @@
 <div class="top">
   <div class="brand"><i></i>zeeslag-arena</div>
   <label>Pauze <input id="delay" type="number" min="0" max="10" step="0.5" value="1" style="width:58px"> s</label>
-  <label title="Vrij spel: elk model schrijft eerst zijn eigen strategie (staat daarna vast), plaatst dan zijn vloot en speelt het duel zonder de stappen en regels van de benchmark. Benchmark-regels: dezelfde beurtprompt als de benchmark (HUNT/TARGET).">modus <select id="mode"><option value="free">Vrij spel (eigen strategie)</option><option value="bench">Benchmark-regels</option></select></label>
+  <label title="Dossier: zoals vrij spel, maar elk model krijgt vooraf een dossier over zijn tegenstander uit eerdere partijen (plaatsing, schietpatroon, uitslagen, eigen notities) en schrijft na afloop een les voor de volgende keer. Vrij spel: elk model schrijft eerst zijn eigen strategie (staat daarna vast), plaatst dan zijn vloot en speelt het duel zonder de stappen en regels van de benchmark. Benchmark-regels: dezelfde beurtprompt als de benchmark (HUNT/TARGET).">modus <select id="mode"><option value="dossier">Dossier (vrij spel + geheugen over de tegenstander)</option><option value="free">Vrij spel (eigen strategie)</option><option value="bench">Benchmark-regels</option></select></label>
   <label title="Aan: elke agent bepaalt zelf waar zijn schepen staan. Uit: willekeurige plaatsing."><input id="selfplace" type="checkbox" checked> agents plaatsen zelf</label>
   <label title="Splash laadt één model tegelijk. Aan: elke agent gebruikt zijn eigen lokale model en Splash wisselt per beurt (traag). Uit: agent B gebruikt hetzelfde lokale model als agent A."><input id="swap" type="checkbox" checked> Splash-modellen wisselen</label>
   <span class="grow"></span>
@@ -329,10 +329,15 @@ Thinking: your budget is ${THINK_TOK} tokens per shot. Decide quickly, and alway
 const FREE_BUDGET = 0; // 0 = onbeperkt: geen denkbudget, geen lusbewaking, geen max_tokens (de proxy laat het model volledig uitdenken; Stop breekt af)
 const FREE_OUTPUT = `OUTPUT: your final answer must be exactly one JSON object and nothing else (no markdown fences, no text before or after). Write all text fields in Dutch. Take all the time and space you need to think; there is no limit on your thinking or on the length of your answer.`;
 
-const STRATEGY_SYSTEM = `${RULES}
+const STRATEGY_SYSTEM = dossier => `${RULES}
 
 PHASE: STRATEGY. Before the game starts you write your own game plan. You are completely free: nobody prescribes how to play. Work out what you believe is the strongest way to win this duel, then commit to it. This plan is fixed for the whole game and will be shown back to you on every turn, so write it so that future-you can follow it without any other help.
-Cover the three parts of the game: (1) how you place your fleet, (2) how you search while nothing is hit, (3) how you follow up on a hit until the ship is sunk. Add anything else you find valuable (parity or spacing patterns, using the remaining ship lengths, when to deviate, and so on). Since this is a race against a live opponent, also decide how you weigh speed against safety.
+Cover the three parts of the game: (1) how you place your fleet, (2) how you search while nothing is hit, (3) how you follow up on a hit until the ship is sunk. Add anything else you find valuable (parity or spacing patterns, using the remaining ship lengths, when to deviate, and so on). Since this is a race against a live opponent, also decide how you weigh speed against safety.${dossier ? `
+
+YOUR OPPONENT IS KNOWN TO YOU. Use this dossier to shape the plan: place your fleet where this opponent is unlikely to look, and search where it tends to hide its ships. Judge for yourself how much to trust it.
+--- DOSSIER ---
+${dossier}
+--- END ---` : ""}
 
 ${FREE_OUTPUT}
 Schema: {"name":"a short catchy name for your strategy","strategy":"your complete plan, as long as it needs to be, concrete and actionable"}`;
@@ -371,12 +376,30 @@ function freeState(me, enemy) {
   return `Board (. unknown, o miss, X hit on a ship not yet sunk, S hit on a sunk ship):\n${rows.join("\n")}\nSunk: ${dead.map(s => s.name).join(", ") || "none"}. Remaining: ${alive.map(s => `${s.name}(${s.len})`).join(", ")}.\nUnresolved hits: ${open.join(", ") || "none"}. Smallest remaining ship: ${Math.min(...alive.map(s => s.len))}.\nAlready fired (never fire these again): ${fired.join(", ") || "none"}.\nShots fired: ${me.history.length}. Your move: a cell that is "." on the board. JSON only.`;
 }
 
+const LESSON_SYSTEM = `${RULES}
+
+PHASE: DEBRIEF. The game is over. Write a short note to your future self for the next game against this same opponent. Cover what you learned about how it places its fleet and how it shoots, what worked and what did not in your own plan, and what you will do differently. Concrete facts and advice only, at most 1200 characters.
+
+${FREE_OUTPUT}
+Schema: {"lesson":"your note"}`;
+const validLesson = o => { const t = String(o.lesson ?? "").trim(); return t.length >= 20 ? {ok:t.slice(0, 1500)} : {err:'"lesson" must be a short note of at least a sentence.'}; };
+async function writeLessons(winner) { // dossier mode: each side debriefs; the note comes back in the next dossier
+  for (const k of ["A","B"]) {
+    const me = G.p[k], foe = G.p[k==="A"?"B":"A"];
+    say(`${me.name} (${shortModel(me.model)}) schrijft een les voor de volgende keer…`); txt("move"+k, "les…"); $("#move"+k).classList.add("live");
+    const fleet = p => p.ships.map(x => `${x.name} ${x.cells.map(([y,x2]) => coord(y,x2)).join(",")}`).join("; ");
+    const info = `RESULT: you ${winner === k ? "WON" : "LOST"} (you needed ${me.history.length} shots, the opponent ${foe.history.length}).\nYour fleet was: ${fleet(me)}.\nThe opponent's fleet was: ${fleet(foe)}.\nYour shots in order: ${me.history.join(" | ")}\nThe opponent's shots at you in order: ${foe.history.join(" | ")}\n\nWrite your note now. JSON only.`;
+    try { const r = await askJSON(k, LESSON_SYSTEM, info, validLesson, FREE_BUDGET); if (r) { me.lesson = r.value; logLine(k, "m", "les: " + me.lesson.slice(0, 120)); } else logLine(k, "w", "les: geen geldig antwoord"); }
+    catch (e) { if (e.name !== "AbortError") logLine(k, "w", "les mislukt: " + e.message); }
+    $("#move"+k).classList.remove("live"); txt("move"+k, "–");
+  }
+}
 const validStrategy = o => { const t = String(o.strategy ?? "").trim(); return t.length >= 40 ? {ok:t.slice(0, 20000)} : {err:'"strategy" must be a concrete plan of at least a few sentences.'}; };
 const FALLBACK_STRATEGY = "Geen eigen strategie gekregen. Speel verstandig: zoek met een dambordpatroon, volg een treffer tot het schip gezonken is en gebruik de lengtes van de schepen die nog drijven.";
 async function strategyAgent(k) {
   const me = G.p[k];
   say(`${me.name} (${shortModel(me.model)}) kiest een strategie…`); txt("move"+k, "strategie…"); $("#move"+k).classList.add("live"); $("#card"+k).classList.add("active");
-  const r = await askJSON(k, STRATEGY_SYSTEM, "Write your strategy now. JSON only.", validStrategy, FREE_BUDGET);
+  const r = await askJSON(k, STRATEGY_SYSTEM(me.dossier), "Write your strategy now. JSON only.", validStrategy, FREE_BUDGET);
   $("#move"+k).classList.remove("live"); $("#card"+k).classList.remove("active"); txt("move"+k, "–");
   me.strategy = r ? r.value : FALLBACK_STRATEGY; me.strategyName = r ? String(r.parsed.name ?? "").trim().slice(0, 60) : "";
   $("#strsec"+k).hidden = false; $("#strd"+k).open = true; txt("strn"+k, me.strategyName || (r ? "" : "geen antwoord")); $("#strb"+k).innerHTML = md(me.strategy);
@@ -583,7 +606,7 @@ async function takeTurn(k, free) {
 async function waitWhilePaused() { while (paused && G && !G.over) await sleep(150); }
 
 async function run() {
-  const mk = k => ({name:"Agent "+k, model:$("#model"+k).value, ...defFrom([]), history:[], notes:[], hits:0, fallbacks:0, ownPlacement:false, placement:"", strategy:"", strategyName:""});
+  const mk = k => ({name:"Agent "+k, model:$("#model"+k).value, ...defFrom([]), history:[], notes:[], hits:0, fallbacks:0, ownPlacement:false, placement:"", strategy:"", strategyName:"", dossier:"", lesson:""});
   const A = mk("A"), B = mk("B");
   if (!A.model || !B.model) return say("Kies voor beide agents een model (of voeg een provider toe).");
   if (!$("#swap").checked && A.model.startsWith("local/") && B.model.startsWith("local/")) B.model = A.model;
@@ -591,8 +614,12 @@ async function run() {
   resetCards(); paintGrid("gridA", A); paintGrid("gridB", B);
   $("#start").disabled = true; $("#pause").disabled = false; $("#stop").disabled = false;
   $("#modelA").disabled = $("#modelB").disabled = $("#mode").disabled = true;
-  const free = $("#mode").value === "free";
+  const free = $("#mode").value !== "bench", dos = $("#mode").value === "dossier";
   try {
+    if (dos) for (const [k, o] of [["A","B"],["B","A"]]) { // what each side knows about the other from earlier games
+      try { G.p[k].dossier = (await (await fetch(`/api/dossier?me=${encodeURIComponent(G.p[k].model)}&foe=${encodeURIComponent(G.p[o].model)}`)).json()).text ?? ""; } catch {}
+      logLine(k, "m", G.p[k].dossier.startsWith("DOSSIER") ? "dossier over de tegenstander geladen" : "nog geen dossier (eerste partij)");
+    }
     if (free) for (const k of ["A","B"]) await strategyAgent(k);
     for (const k of ["A","B"]) {
       if ($("#selfplace").checked) await placeAgent(k, free);
@@ -614,7 +641,7 @@ async function run() {
       logLine(k, fallback?"w":res.result==="sunk"?"s":res.result==="hit"?"h":"m", `#${me.history.length} ${coord(r,c)} ${res.result==="miss"?"mis":res.result==="hit"?"treffer":"zonk "+res.ship}${fallback?" (auto-zet)":""}`);
       paintGrid(o==="A"?"gridA":"gridB", foe, [r,c]);
       updateCard("A"); updateCard("B");
-      if (allSunk(foe)) { G.over = true; saveMatch(k); say(`${me.name} wint in ${me.history.length} schoten · ${shortModel(me.model)}`); $("#card"+k).classList.add("active"); $("#card"+o).classList.remove("active"); break; }
+      if (allSunk(foe)) { G.over = true; if (dos) await writeLessons(k); saveMatch(k); say(`${me.name} wint in ${me.history.length} schoten · ${shortModel(me.model)}`); $("#card"+k).classList.add("active"); $("#card"+o).classList.remove("active"); break; }
       G.turn = o;
       const d = Number($("#delay").value) * 1000; if (d) await sleep(d);
     }
@@ -696,7 +723,7 @@ $("#dclose").onclick = () => $("#dlg").close();
 /* ---------- scores ---------- */
 function saveMatch(winner) {
   const fleet = p => p.ships.map(x => ({name:x.name, len:x.len, cells:x.cells}));
-  const side = (p, foe) => ({model:p.model, shots:p.history.length, hits:p.hits, fallbacks:p.fallbacks, ownPlacement:p.ownPlacement, placement:p.placement, strategy:p.strategy, strategyName:p.strategyName, foeFleet:fleet(foe), moves:p.history.map((h, i) => { const m = /^(\S+) → (\w+)(?: \((.+) sunk\))?/.exec(h); return {cell:m[1], result:m[3] ? "sunk " + m[3] : m[2], ...p.notes[i]}; })});
+  const side = (p, foe) => ({model:p.model, shots:p.history.length, hits:p.hits, fallbacks:p.fallbacks, ownPlacement:p.ownPlacement, placement:p.placement, lesson:p.lesson, dossier:p.dossier, strategy:p.strategy, strategyName:p.strategyName, foeFleet:fleet(foe), moves:p.history.map((h, i) => { const m = /^(\S+) → (\w+)(?: \((.+) sunk\))?/.exec(h); return {cell:m[1], result:m[3] ? "sunk " + m[3] : m[2], ...p.notes[i]}; })});
   fetch("/api/matches", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({a:side(G.p.A, G.p.B), b:side(G.p.B, G.p.A), winner, mode:$("#mode").value})}).catch(() => {});
 }
 const pct = x => (x*100).toFixed(0) + "%";
@@ -712,8 +739,8 @@ $("#sclose").onclick = () => $("#sdlg").close();
 
 /* ---------- init ---------- */
 buildGrid($("#gridA")); buildGrid($("#gridB")); stat("A",0,0); stat("B",0,0);
-const savedMode = store.get("zs.mode"); if (savedMode) $("#mode").value = savedMode;
-$("#mode").onchange = e => store.set("zs.mode", e.target.value);
+const savedMode = store.get("zs.mode2"); if (savedMode) $("#mode").value = savedMode;
+$("#mode").onchange = e => store.set("zs.mode2", e.target.value);
 $("#start").onclick = run;
 addEventListener("keydown", e => { if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) location.href = "/bench"; });
 $("#stop").onclick = () => abortCtl?.abort();

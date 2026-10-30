@@ -71,12 +71,48 @@ function gameMd(g) {
   for (const k of ["a", "b"]) {
     const x = g[k], won = g.winner === k.toUpperCase();
     md += `### ${short(x.model)} (${k.toUpperCase()}) · ${won ? "won" : "lost"} · ${x.moves.length} shots · ${x.hits} hits${x.fallbacks ? ` · ${x.fallbacks} auto-moves` : ""}\n\n`;
+    if (x.dossier) md += `**Dossier it received on its opponent**\n\n${quote(x.dossier)}\n\n`;
     md += x.strategy ? `**Strategy${x.strategyName ? `: ${x.strategyName}` : ""}**\n\n${quote(x.strategy)}\n\n` : "_No own strategy (standard mode)._\n\n";
     md += `**Fleet placement:** ${x.ownPlacement ? "own placement" : "random"}${x.placement ? `\n\n${quote(x.placement)}` : ""}\n\n`;
+    if (x.lesson) md += `**Lesson it wrote after the game**\n\n${quote(x.lesson)}\n\n`;
     md += "| # | Cell | Result | Reasoning |\n|---|---|---|---|\n" + x.moves.map((m, i) => `| ${i + 1} | ${m.cell} | ${m.result}${m.fallback ? " (auto-move)" : ""} | ${cellMd(m.why)} |`).join("\n") + "\n\n";
   }
   return md;
 }
+// Dossier on an opponent, built only from what `me` could observe in earlier games against `foe`: where the foe placed its fleet,
+// how it shot, how those games ended, plus me's own lessons. Never the foe's strategy text or reasoning.
+const cellName = ([r, c]) => COLS[c] + (r + 1);
+function shipLine(s) {
+  const cs = [...s.cells].sort((x, y) => x[0] - y[0] || x[1] - y[1]), horiz = cs.length > 1 && cs[0][0] === cs[1][0];
+  return `${s.name} ${cellName(cs[0])}-${cellName(cs[cs.length - 1])} ${horiz ? "H" : "V"}`;
+}
+export function dossier(me, foe) {
+  const dir = DIR + "arena/", games = [];
+  for (const d of existsSync(dir) ? readdirSync(dir) : []) {
+    try {
+      const run = JSON.parse(readFileSync(`${dir}${d}/run.json`, "utf8"));
+      if (run.models?.includes(me) && run.models.includes(foe)) for (const g of run.games) { // my side and the foe's side of each game
+        const m = g.a.model === me ? ["a", "b"] : ["b", "a"];
+        games.push({ ts: g.ts, won: g.winner === m[0].toUpperCase(), mine: g[m[0]], theirs: g[m[1]] });
+      }
+    } catch {}
+  }
+  games.sort((x, y) => y.ts.localeCompare(x.ts));
+  const name = short(foe);
+  if (!games.length) return `You have not played ${name} before. No dossier yet.`;
+  const out = [`DOSSIER ON YOUR OPPONENT (${name}), from ${games.length} earlier game${games.length === 1 ? "" : "s"} against it, newest first. Everything below is what you observed; it is not a promise that ${name} plays the same way again.`];
+  out.push(`Results: you won ${games.filter((g) => g.won).length} of ${games.length}.`);
+  games.slice(0, 4).forEach((g, i) => {
+    const sh = g.theirs.moves, par = sh.length ? sh.filter((q) => { const m = /^([A-J])(\d+)$/.exec(q.cell); return m && (COLS.indexOf(m[1]) + Number(m[2]) - 1) % 2 === 0; }).length / sh.length : 0;
+    const border = g.mine.foeFleet.filter((s) => s.cells.some(([r, c]) => r === 0 || r === 9 || c === 0 || c === 9)).length;
+    out.push(`Game ${i + 1} (${g.won ? "you won" : "you lost"}, you needed ${g.mine.moves.length} shots, ${name} needed ${sh.length}):`);
+    out.push(`  Its fleet placement: ${g.mine.foeFleet.map(shipLine).join("; ")} (${border} of 5 ships touch the border).`);
+    out.push(`  Its shooting: first 8 shots ${sh.slice(0, 8).map((q) => `${q.cell}${q.result === "miss" ? "" : "*"}`).join(" ")} (* = hit), hit rate ${Math.round((g.theirs.hits / Math.max(1, sh.length)) * 100)}%, ${Math.round(par * 100)}% of its shots on checkerboard parity.`);
+    if (g.mine.lesson) out.push(`  Your own note after that game: ${g.mine.lesson}`);
+  });
+  return out.join("\n");
+}
+
 export function saveArena(game) {
   const names = [game.a.model, game.b.model].sort(), pair = names.map(slug).join("_vs_");
   const dir = DIR + "arena/" + pair + "/"; mkdirSync(dir, { recursive: true });
