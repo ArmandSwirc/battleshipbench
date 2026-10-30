@@ -1,0 +1,264 @@
+{
+ "model": "local/unsloth/Qwen3.8-27B-GGUF:UD-Q4_K_M",
+ "startedAt": "2026-10-30T06:19:36.882Z",
+ "boards": [
+  {
+   "seed": 11,
+   "shots": 30,
+   "finished": false,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       3,
+       2
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       3,
+       5
+      ],
+      [
+       3,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       0,
+       1
+      ],
+      [
+       0,
+       2
+      ],
+      [
+       0,
+       3
+      ],
+      [
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       5
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       9,
+       5
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       2,
+       1
+      ],
+      [
+       2,
+       2
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "miss"
+    },
+    {
+     "n": 2,
+     "cell": "F6",
+     "result": "miss"
+    },
+    {
+     "n": 3,
+     "cell": "F4",
+     "result": "hit"
+    },
+    {
+     "n": 4,
+     "cell": "F3",
+     "result": "miss"
+    },
+    {
+     "n": 5,
+     "cell": "E4",
+     "result": "hit"
+    },
+    {
+     "n": 6,
+     "cell": "D4",
+     "result": "hit"
+    },
+    {
+     "n": 7,
+     "cell": "G4",
+     "result": "hit"
+    },
+    {
+     "n": 8,
+     "cell": "C4",
+     "result": "sunk Carrier"
+    },
+    {
+     "n": 9,
+     "cell": "E7",
+     "result": "miss"
+    },
+    {
+     "n": 10,
+     "cell": "G5",
+     "result": "miss"
+    },
+    {
+     "n": 11,
+     "cell": "D6",
+     "result": "miss"
+    },
+    {
+     "n": 12,
+     "cell": "H6",
+     "result": "miss"
+    },
+    {
+     "n": 13,
+     "cell": "G7",
+     "result": "miss"
+    },
+    {
+     "n": 14,
+     "cell": "F8",
+     "result": "hit"
+    },
+    {
+     "n": 15,
+     "cell": "F7",
+     "result": "miss"
+    },
+    {
+     "n": 16,
+     "cell": "E8",
+     "result": "miss"
+    },
+    {
+     "n": 17,
+     "cell": "G8",
+     "result": "miss"
+    },
+    {
+     "n": 18,
+     "cell": "F9",
+     "result": "hit"
+    },
+    {
+     "n": 19,
+     "cell": "F10",
+     "result": "sunk Submarine"
+    },
+    {
+     "n": 20,
+     "cell": "B6",
+     "result": "miss"
+    },
+    {
+     "n": 21,
+     "cell": "D8",
+     "result": "miss"
+    },
+    {
+     "n": 22,
+     "cell": "C5",
+     "result": "miss"
+    },
+    {
+     "n": 23,
+     "cell": "I5",
+     "result": "miss"
+    },
+    {
+     "n": 24,
+     "cell": "C7",
+     "result": "miss"
+    },
+    {
+     "n": 25,
+     "cell": "H4",
+     "result": "miss"
+    },
+    {
+     "n": 26,
+     "cell": "E9",
+     "result": "miss"
+    },
+    {
+     "n": 27,
+     "cell": "I7",
+     "result": "miss"
+    },
+    {
+     "n": 28,
+     "cell": "H8",
+     "result": "miss"
+    },
+    {
+     "n": 29,
+     "cell": "G9",
+     "result": "miss"
+    },
+    {
+     "n": 30,
+     "cell": "I9",
+     "result": "miss"
+    }
+   ]
+  }
+ ]
+}
