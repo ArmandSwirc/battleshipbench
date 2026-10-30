@@ -106,7 +106,7 @@ async function playBot(fn, seed) {
 }
 
 // ---- model-speler (via server.mjs) ----
-const THINK = Number(process.env.BENCH_THINK ?? 8000); // denk-tokens per schot
+const THINK = Number(process.env.BENCH_THINK ?? 5000); // denk-tokens per schot
 const SYSTEM = `You play Battleship on a 10x10 board (columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight (horizontal or vertical), never overlap, and may touch each other. Fire one shot per turn at a cell not yet fired at. Fewer shots is better.
 
 Board legend: . unknown, o miss, X hit on a ship that is NOT sunk yet, S hit on a ship that IS sunk (finished, ignore it, but an X next to an S can belong to another ship). Each turn you also get the unresolved hits (all X cells), the remaining ships and the smallest remaining ship, so never spend thinking on working out which hit belongs to which ship.
@@ -117,12 +117,12 @@ STEP 1 - Pick the mode. Read the "Unresolved hits" line. If it lists any cell: T
 
 STEP 2a - TARGET mode (finish the open ship, never wander off):
   - Two or more unresolved hits in a straight line: the ship runs along that line. Fire the next "." cell at either end of the line. If both ends are blocked (miss, S or edge), the hits belong to different ships: treat each hit on its own.
-  - A single unresolved hit: fire one of its four neighbours. Prefer the neighbour with the most free "." cells in a row, enough for the largest remaining ship.
+  - A single unresolved hit: fire any "." neighbour of it (up, down, left or right).
   - Do not leave TARGET mode until Unresolved hits is empty.
 
-STEP 2b - HUNT mode (find a new ship efficiently):
-  - Fire a cell where a remaining ship can still fit in a straight line over "." cells. Skip boxed-in cells where not even the smallest remaining ship fits.
-  - Use a checkerboard: every other cell, spaced by the smallest remaining ship, so no ship can hide between your shots. Prefer the centre, avoid corners and edges early.
+STEP 2b - HUNT mode. This is a quick decision, not an analysis: do NOT check cells one by one.
+  - Number the columns A=1 ... J=10. If the smallest remaining ship is 2, fire only at "." cells where column number + row number is even. If it is 3 or more, fire only at "." cells where column number + row number is divisible by 3 (every such ship covers one of those cells).
+  - Name one such cell near the centre right away and fire it. Only if that cell is not ".", take the nearest cell that fits the rule.
 
 STEP 3 - Check and answer. The cell must be "." (never o, X or S). Then reply with the JSON.
 

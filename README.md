@@ -40,7 +40,7 @@ score = 100 × (100 − average shots to sink the fleet) / 83
 
 Invalid moves (off-board, already-fired cell, no JSON) get two retries with feedback; after that a random *auto-move* is played and counted. Bots (🤖) are the yardstick.
 
-Every model gets the same helper prompt: the rules, a short hunt/target strategy, and a board where finished ships are marked `S`, open hits `X`, plus the list of unresolved hits and the smallest remaining ship. Thinking is capped at 8000 tokens per move, the same for every model, only as a guard against endless loops (a cut-off model must answer from what it has, and a repetition detector stops looping earlier).
+Every model gets the same helper prompt: the rules, a short hunt/target strategy, and a board where finished ships are marked `S`, open hits `X`, plus the list of unresolved hits and the smallest remaining ship. Thinking is capped at 5000 tokens per move, the same for every model, only as a guard against endless loops (a cut-off model must answer from what it has, and a repetition detector stops looping earlier).
 
 ### 🗺️ How the boards are made: difficult, but realistic
 
