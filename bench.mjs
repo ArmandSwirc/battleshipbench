@@ -134,6 +134,48 @@ const render = (b) => {
   return `Board (. unknown, o miss, X hit on a ship not yet sunk, S hit on a sunk ship):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nUnresolved hits: ${open_.join(", ") || "none (HUNT mode)"}. Smallest remaining ship: ${Math.min(...b.ships.filter((s) => s.hits < s.len).map((s) => s.len))}.\nShots fired: ${b.count}. Your move, JSON only.`;
 };
 let lastAsk = { cut: false, tok: 0, ms: 0 };
+// Decision-modellen (provider met "decision": true, bv. Laya via Unsloth /v1/systemone) kiezen i.p.v. praten, zoals zo'n model bedoeld is:
+// state = de stand in gewone taal; per vrije cel één ja/nee-vraag ("is dit een goed volgend schot?") met feiten over die cel en korte
+// ja/nee-criteria. Het schot met de hoogste kans op ja wordt gespeeld; de zet is dus altijd geldig. Laya leest maar 1024 tokens per vraag.
+const DECISION = new Set();
+try { for (const p of await (await fetch(`${SERVER}/api/providers`)).json()) if (p.decision) for (const m of p.models) DECISION.add(`${p.id}/${m}`); } catch {}
+const DIRS = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+function decisionView(b) {
+  const inB = (y, x) => y >= 0 && y < SIZE && x >= 0 && x < SIZE, open_ = [];
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) { const s = b.shots[y][x]; if (!s) continue; if (s.result !== "miss") { const sh = b.ships[b.grid[y][x]]; if (sh.hits < sh.len) open_.push([y, x]); } }
+  const left = b.ships.filter((s) => s.hits < s.len), small = Math.min(...left.map((s) => s.len));
+  const isOpen = (y, x) => open_.some(([a, c]) => a === y && c === x), names = open_.map(([y, x]) => cell(y, x));
+  const state = names.length ? `Battleship. We hit a ship at ${names.join(" and ")} and it is not sunk yet.` : "Battleship. We are searching for a ship. No open hits.";
+  // Laya reageert alleen op korte, directe vragen over één eigenschap; lange of dubbele vragen maken de scores vlak.
+  const facts = (y, x) => {
+    const nb = DIRS.map(([dy, dx]) => [y + dy, x + dx]).filter(([a, c]) => inB(a, c)), me = cell(y, x);
+    if (open_.length) {
+      const touch = nb.filter(([a, c]) => isOpen(a, c));
+      return touch.length ? `${me} touches the open hit ${touch.map(([a, c]) => cell(a, c)).join(" and ")}` : `${me} is ${Math.min(...open_.map(([a, c]) => Math.abs(a - y) + Math.abs(c - x)))} cells from the nearest open hit`;
+    }
+    const on = small === 2 ? (x + y + 2) % 2 === 0 : (x + y + 2) % 3 === 0, edge = nb.length < 4 ? (nb.length < 3 ? ", in a corner" : ", near the edge") : "";
+    return `${me} is ${on ? "on" : "off"} the search pattern${edge}`;
+  };
+  const q = open_.length ? "Is this shot right next to an open hit?" : "Is this shot on the search pattern?";
+  const criteria = open_.length
+    ? { true: "It touches an open hit", false: "It does not touch an open hit" }
+    : { true: "It is on the search pattern", false: "It is off the search pattern" };
+  return { state, facts, q, criteria, mode: open_.length ? "target" : "hunt" };
+}
+async function decide(model, b) {
+  const t0 = Date.now(), v = decisionView(b), cands = [];
+  for (let y = 0; y < SIZE; y++) for (let x = 0; x < SIZE; x++) if (!b.shots[y][x]) cands.push([y, x]);
+  let best = null;
+  for (let i = 0; i < cands.length; i += 64) { // max 64 vragen per aanroep
+    const questions = Object.fromEntries(cands.slice(i, i + 64).map(([y, x]) => [cell(y, x), { type: "noul", instructions: `Shot ${v.facts(y, x)}. ${v.q}`, criteria: v.criteria }]));
+    const res = await fetch(`${SERVER}/api/decide`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ model, state: v.state, questions }) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    for (const [k, a] of Object.entries((await res.json()).answers ?? {})) if (typeof a.noul === "number" && (!best || a.noul > best.p)) best = { k, p: a.noul };
+  }
+  const mv = best && parse(best.k);
+  if (!mv) throw new Error("no valid choice");
+  return { mv, why: `${v.mode}: ${best.k} scores ${Math.round(100 * best.p)}% yes of ${cands.length} open cells`, ms: Date.now() - t0 };
+}
 async function ask(model, user) {
   LIVE.think = ""; LIVE.thinkChars = 0; LIVE.thinkTok = 0; LIVE.thinkMax = THINK; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
   const body = { model, think_budget: THINK, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }] };
@@ -165,7 +207,9 @@ async function playModel(model, seed) {
   while (!done(b) && b.count < MAX_SHOTS) {
     let mv = null, extra = "", tries = 0, ask1 = null, fb = false, why = ""; LIVE.turn = b.count + 1;
     for (let t = 0; t < 3 && !mv; t++) {
-      tries++; let text = ""; try { text = await askRetry(model, render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
+      tries++;
+      if (DECISION.has(model)) { try { const d = await decide(model, b); mv = d.mv; why = d.why; ask1 = { cut: false, tok: 0, ms: d.ms }; } catch (e) { console.log(`\n${e.message}`); } continue; }
+      let text = ""; try { text = await askRetry(model, render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
       const m = /\{[^{}]*\}/.exec(text.replace(/```(?:json)?/g, "")); let j = null; try { j = m && JSON.parse(m[0]); } catch {}
       const rc = parse(j?.move);
       if (rc && !b.shots[rc[0]][rc[1]]) { mv = rc; why = String(j?.why ?? "").slice(0, 240); } else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;

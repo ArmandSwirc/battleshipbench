@@ -17,7 +17,7 @@ const save = (providers) => {
   writeFileSync(FILE, JSON.stringify({ providers }, null, 2));
   chmodSync(FILE, 0o600);
 };
-const pub = (p) => ({ id: p.id, name: p.name, baseUrl: p.baseUrl, models: p.models, hasKey: !!p.apiKey });
+const pub = (p) => ({ id: p.id, name: p.name, baseUrl: p.baseUrl, models: p.models, hasKey: !!p.apiKey, decision: !!p.decision });
 const slug = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 32);
 const json = (res, code, obj) => res.writeHead(code, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify(obj));
 const readBody = async (req) => {
@@ -197,7 +197,7 @@ async function handle(req, res) {
     if (!id || id === "local") return json(res, 400, { error: "ongeldige naam" });
     const all = load(), old = all.find((p) => p.id === id);
     const models = Array.isArray(b.models) ? b.models.map(String).map((s) => s.trim()).filter(Boolean) : old?.models ?? [];
-    const next = { id, name, baseUrl, apiKey: b.apiKey ? String(b.apiKey) : old?.apiKey ?? "", models };
+    const next = { id, name, baseUrl, apiKey: b.apiKey ? String(b.apiKey) : old?.apiKey ?? "", models, ...(old?.decision ? { decision: true } : {}) };
     save(old ? all.map((p) => (p.id === id ? next : p)) : [...all, next]);
     return json(res, 200, pub(next));
   }
@@ -229,8 +229,20 @@ async function handle(req, res) {
     } catch {
       groups.push({ id: "local", name: "Splash (lokaal)", models: [], error: "niet bereikbaar" });
     }
-    for (const p of load()) groups.push({ id: p.id, name: p.name, models: p.models });
+    for (const p of load()) groups.push({ id: p.id, name: p.name, models: p.models, ...(p.decision ? { decision: true } : {}) });
     return json(res, 200, groups);
+  }
+
+  // Decision-modellen (Unsloth /v1/systemone, Jev-stijl): geen chat, maar getypte vragen (choice/noul/score); de sleutel blijft hier.
+  if (req.method === "POST" && path === "/api/decide") {
+    const b = await readBody(req), ref = String(b.model ?? ""), i = ref.indexOf("/");
+    const p = load().find((x) => x.id === ref.slice(0, i));
+    if (!p?.decision) return json(res, 400, { error: `'${ref.slice(0, i)}' is geen decision-provider` });
+    try {
+      const up = await fetch(`${baseOf(p)}/systemone`, { method: "POST", headers: { "content-type": "application/json", ...authHeaders(p) }, body: JSON.stringify({ model: ref.slice(i + 1), state: b.state, questions: b.questions }), signal: AbortSignal.timeout(180000) });
+      res.writeHead(up.status, { "content-type": "application/json", "cache-control": "no-store" }).end(await up.text());
+    } catch (e) { json(res, 502, { error: `${p.id} niet bereikbaar: ${e.message}` }); }
+    return;
   }
 
   if (req.method === "POST" && path === "/api/chat") {
