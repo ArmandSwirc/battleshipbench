@@ -40,6 +40,7 @@
   .top label{display:flex;align-items:center;gap:6px;color:var(--ink-2);font-size:12px}
   .grow{flex:1}
   .btn{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 11px;border-radius:2px;border:1px solid var(--line-2);background:transparent;font-weight:500;font-size:12.5px;cursor:pointer}
+  a.btn{text-decoration:none;color:inherit}
   .btn:hover{background:var(--hover);border-color:var(--ink-3)}
   .btn:disabled{opacity:.45;cursor:default}
   .btn.pri{background:var(--ink);border-color:var(--ink);color:var(--page)}
@@ -130,6 +131,7 @@
   <label title="Splash laadt één model tegelijk. Aan: elke agent gebruikt zijn eigen lokale model en Splash wisselt per beurt (traag). Uit: agent B gebruikt hetzelfde lokale model als agent A."><input id="swap" type="checkbox" checked> Splash-modellen wisselen</label>
   <span class="grow"></span>
   <span id="status">Laden…</span>
+  <a class="btn" id="benchlink" href="/bench" title="Benchmark screen (shortcut: B)">Benchmark ↗</a>
   <button class="btn" id="scores">Scores</button>
   <button class="btn" id="prov">Providers</button>
   <button class="btn" id="pause" disabled>Pauze</button>
@@ -610,6 +612,7 @@ $("#sclose").onclick = () => $("#sdlg").close();
 /* ---------- init ---------- */
 buildGrid($("#gridA")); buildGrid($("#gridB")); stat("A",0,0); stat("B",0,0);
 $("#start").onclick = run;
+addEventListener("keydown", e => { if (e.key.toLowerCase() === "b" && !e.metaKey && !e.ctrlKey && !/INPUT|SELECT|TEXTAREA/.test(document.activeElement?.tagName)) location.href = "/bench"; });
 $("#stop").onclick = () => abortCtl?.abort();
 $("#pause").onclick = () => { paused = !paused; $("#pause").textContent = paused ? "Hervat" : "Pauze"; };
 loadModels();

@@ -13,8 +13,8 @@
 
 | # | Model | Score | Avg shots | Boards | Auto-moves |
 |--:|---|--:|--:|--:|--:|
-| 1 | 🤖 Probability bot | **60.1** | 50.1 | 10 | 0 |
-| 2 | 🤖 Random bot | **4.8** | 96 | 10 | 0 |
+| 1 | 🤖 Probability bot | **42.3** | 64.9 | 10 | 0 |
+| 2 | 🤖 Random bot | **3.7** | 96.9 | 10 | 0 |
 
 ### ⚔️ Arena (head-to-head, Elo)
 
@@ -34,11 +34,21 @@ score = 100 × (100 − average shots to sink the fleet) / 83
 | Score | Meaning |
 |--:|---|
 | **100** | Perfect play: 17 shots, every shot a hit |
-| **60** | About a probability-density bot (the best a clean algorithm does) |
-| **5** | Random shooting (about 96 shots) |
+| **~40** | The probability-density bot on these boards (a strong algorithmic baseline) |
+| **~4** | Random shooting (about 97 shots) |
 | **0** | Fleet not sunk within 100 shots |
 
 Invalid moves (off-board, already-fired cell, no JSON) get two retries with feedback; after that a random *auto-move* is played and counted. Bots (🤖) are the yardstick.
+
+### 🗺️ How the boards are made: difficult, but realistic
+
+All models play the same 10 boards, frozen in [`boards.json`](boards.json), so results are comparable and reproducible.
+
+1. **Realistic:** standard fleet (Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2); ships are straight and never overlap, may touch; mixed orientation (2–3 horizontal); at most 2 ships flush against the border.
+2. **Difficult:** for each board, 300 random legal fleets are generated and each is played 3× by the probability-density bot. The fleet that bot needs the most shots to find is kept. These fleets sit where density heuristics look last, so lucky center-hunting does not pay off.
+3. **Transparent:** regenerate with `node bench.mjs boards`. The live screen shows every ship by type (C/B/R/S/D) so you can follow how each model hunts.
+
+Caveat: boards are tuned against the density bot, which makes the bot a *harsh* yardstick. Compare models to each other and to the bots on the same boards.
 
 ### ⚔️ Arena: relative score, Elo
 
@@ -47,7 +57,8 @@ Two models play each other, each one placing its own fleet. Every finished game 
 ## Run it
 
 ```bash
-node server.mjs                                              # UI at http://127.0.0.1:8791 (Arena)
+node server.mjs                                              # 1v1 arena at http://127.0.0.1:8791, live bench at /bench
+node bench.mjs boards                                        # (re)generate the fixed boards
 node bench.mjs bots                                          # measure the yardstick bots
 node bench.mjs run anthropic/claude-haiku-5-5 --boards 5     # Gauntlet for one model
 node bench.mjs readme                                        # refresh the leaderboard above

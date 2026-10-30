@@ -3,7 +3,7 @@
 //   node bench.mjs bots                         bots meten en opslaan
 //   node bench.mjs run anthropic/claude-haiku-5-5 [--boards 5]   (server.mjs moet draaien; sleutels blijven daar)
 //   node bench.mjs readme                       leaderboard in README.md bijwerken
-import { readFileSync, writeFileSync, appendFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, appendFileSync, existsSync, renameSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 const SIZE = 10, FLEET = [["Carrier", 5], ["Battleship", 4], ["Cruiser", 3], ["Submarine", 3], ["Destroyer", 2]];
@@ -12,20 +12,62 @@ const SERVER = process.env.BENCH_SERVER ?? "http://127.0.0.1:8791";
 const BENCH = fileURLToPath(new URL("./bench.jsonl", import.meta.url));
 const MATCHES = fileURLToPath(new URL("./matches.jsonl", import.meta.url));
 const README = fileURLToPath(new URL("./README.md", import.meta.url));
+// Live stand voor het benchmark-scherm (server.mjs serveert /bench en /api/bench/live)
+const LIVE_FILE = fileURLToPath(new URL("./bench-live.json", import.meta.url));
+const LIVE = { status: "idle", shots: [], results: [], think: "" };
+let lastFlush = 0;
+function flush(force) {
+  const t = Date.now(); if (!force && t - lastFlush < 300) return; lastFlush = t;
+  LIVE.updatedAt = new Date().toISOString();
+  try { writeFileSync(LIVE_FILE + ".tmp", JSON.stringify(LIVE)); renameSync(LIVE_FILE + ".tmp", LIVE_FILE); } catch {}
+}
 const COLS = "ABCDEFGHIJ", cell = (r, c) => COLS[c] + (r + 1);
 const parse = (s) => { const m = /^\s*([A-Ja-j])\s*(10|[1-9])\s*$/.exec(String(s ?? "")); return m ? [Number(m[2]) - 1, COLS.indexOf(m[1].toUpperCase())] : null; };
 
 function rng(seed) { let a = seed; return () => { a = (a + 0x6d2b79f5) | 0; let t = Math.imul(a ^ (a >>> 15), 1 | a); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 
-function newBoard(seed) {
-  const rand = rng(seed), grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(-1)), ships = [];
-  for (const [name, len] of FLEET) for (;;) {
-    const h = rand() < 0.5, r = Math.floor(rand() * (h ? SIZE : SIZE - len + 1)), c = Math.floor(rand() * (h ? SIZE - len + 1 : SIZE));
-    const cs = Array.from({ length: len }, (_, i) => (h ? [r, c + i] : [r + i, c]));
-    if (cs.some(([y, x]) => grid[y][x] >= 0)) continue;
-    cs.forEach(([y, x]) => (grid[y][x] = ships.length)); ships.push({ name, len, hits: 0 }); break;
+// ---- borden: vast in boards.json (node bench.mjs boards), gekozen op moeilijkheid maar realistisch ----
+const BOARDS = fileURLToPath(new URL("./boards.json", import.meta.url));
+function randomFleet(rand) { // legale vloot; realistisch: gemengde richting, hooguit 2 schepen tegen de rand, schepen mogen elkaar raken
+  for (;;) {
+    const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(-1)), ships = []; let ok = true;
+    for (const [name, len] of FLEET) {
+      let placed = false;
+      for (let t = 0; t < 200 && !placed; t++) {
+        const h = rand() < 0.5, r = Math.floor(rand() * (h ? SIZE : SIZE - len + 1)), c = Math.floor(rand() * (h ? SIZE - len + 1 : SIZE));
+        const cells = Array.from({ length: len }, (_, i) => (h ? [r, c + i] : [r + i, c]));
+        if (cells.some(([y, x]) => grid[y][x] >= 0)) continue;
+        cells.forEach(([y, x]) => (grid[y][x] = ships.length)); ships.push({ name, len, h, cells }); placed = true;
+      }
+      if (!placed) { ok = false; break; }
+    }
+    const edge = ships.filter((s) => s.cells.every(([y]) => y === 0) || s.cells.every(([y]) => y === SIZE - 1) || s.cells.every(([, x]) => x === 0) || s.cells.every(([, x]) => x === SIZE - 1)).length;
+    const hs = ships.filter((s) => s.h).length;
+    if (ok && edge <= 2 && hs >= 2 && hs <= 3) return ships;
   }
-  return { grid, ships, shots: Array.from({ length: SIZE }, () => Array(SIZE).fill(null)), count: 0 };
+}
+const fromShips = (ships) => {
+  const grid = Array.from({ length: SIZE }, () => Array(SIZE).fill(-1));
+  ships.forEach((s, i) => s.cells.forEach(([y, x]) => (grid[y][x] = i)));
+  return { grid, ships: ships.map((s) => ({ name: s.name, len: s.len, hits: 0, cells: s.cells })), shots: Array.from({ length: SIZE }, () => Array(SIZE).fill(null)), count: 0 };
+};
+async function genBoards() { // per seed: 300 kandidaten; kies de vloot waar de kansdichtheid-bot het langst over doet
+  const out = [];
+  for (const seed of SEEDS) {
+    const rand = rng(seed); let best = null;
+    for (let k = 0; k < 300; k++) {
+      const ships = randomFleet(rand); let tot = 0;
+      for (let t = 0; t < 3; t++) { const b = fromShips(ships), r2 = rng(seed * 31 + t); while (!done(b)) { const [y, x] = botProb(b, r2); fire(b, y, x); } tot += b.count; }
+      if (!best || tot / 3 > best.botShots) best = { seed, botShots: Math.round((tot / 3) * 10) / 10, ships: ships.map(({ name, len, cells }) => ({ name, len, cells })) };
+    }
+    out.push(best); console.log(`seed ${seed}: prob-bot ${best.botShots} shots`);
+  }
+  writeFileSync(BOARDS, JSON.stringify(out));
+}
+function newBoard(seed) {
+  const all = existsSync(BOARDS) ? JSON.parse(readFileSync(BOARDS, "utf8")) : [], e = all.find((x) => x.seed === seed);
+  if (!e) throw new Error("boards.json ontbreekt: draai eerst `node bench.mjs boards`");
+  return fromShips(e.ships);
 }
 function fire(b, r, c) {
   b.count++;
@@ -67,7 +109,8 @@ const render = (b) => {
   return `Board (. unknown, o miss, X hit):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nShots fired: ${b.count}. Your move, JSON only.`;
 };
 async function ask(model, user) {
-  const body = { model, stream: true, temperature: 0.6, reasoning_effort: "high", messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }] };
+  LIVE.think = ""; LIVE.thinkChars = 0; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
+  const body = { model, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }] };
   const res = await fetch(`${SERVER}/api/chat`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const dec = new TextDecoder(); let buf = "", out = "";
@@ -76,7 +119,12 @@ async function ask(model, user) {
     for (let i; (i = buf.indexOf("\n")) >= 0;) {
       const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1);
       if (!line.startsWith("data:") || line.includes("[DONE]")) continue;
-      try { out += JSON.parse(line.slice(5)).choices?.[0]?.delta?.content ?? ""; } catch {}
+      try {
+        const d = JSON.parse(line.slice(5)).choices?.[0]?.delta ?? {};
+        if (d.content) out += d.content;
+        if (d.reasoning_content) { LIVE.think = (LIVE.think + d.reasoning_content).slice(-3000); LIVE.thinkChars = (LIVE.thinkChars ?? 0) + d.reasoning_content.length; }
+        if (d.content || d.reasoning_content) flush();
+      } catch {}
     }
   }
   return out;
@@ -86,6 +134,7 @@ async function askRetry(model, user) {
 }
 async function playModel(model, seed) {
   const b = newBoard(seed), rand = rng(seed + 7); let fallbacks = 0;
+  Object.assign(LIVE, { seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
   while (!done(b) && b.count < MAX_SHOTS) {
     let mv = null, extra = "";
     for (let t = 0; t < 3 && !mv; t++) {
@@ -95,7 +144,11 @@ async function playModel(model, seed) {
       if (rc && !b.shots[rc[0]][rc[1]]) mv = rc; else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
     }
     if (!mv) { mv = botRandom(b, rand); fallbacks++; }
-    fire(b, ...mv);
+    const fr = fire(b, ...mv);
+    LIVE.cells[mv[0]][mv[1]] = fr.result === "miss" ? "o" : "X"; LIVE.fallbacks = fallbacks;
+    LIVE.shots.push({ cell: cell(...mv), result: fr.result === "sunk" ? `sunk ${fr.ship}` : fr.result });
+    if (fr.ship) LIVE.sunk.push(fr.ship);
+    LIVE.status = "firing"; flush(true);
     process.stdout.write(done(b) ? "!" : b.shots[mv[0]][mv[1]].result === "miss" ? "." : "X");
   }
   console.log(` board ${seed}: ${b.count} shots${done(b) ? "" : " (not finished)"} · ${fallbacks} auto-moves`);
@@ -107,10 +160,15 @@ const score = (avg) => Math.max(0, Math.round((100 * (MAX_SHOTS - avg)) / (MAX_S
 
 async function bench(name, fn, boards) {
   const seeds = SEEDS.slice(0, boards), res = [];
-  for (const s of seeds) res.push(await fn(s));
+  Object.assign(LIVE, { name, boards: seeds.length, results: [], startedAt: new Date().toISOString(), status: "starting" });
+  for (const [i, s] of seeds.entries()) {
+    LIVE.boardIdx = i + 1; const r = await fn(s); res.push(r);
+    LIVE.results.push({ seed: s, shots: r.shots, fallbacks: r.fallbacks }); flush(true);
+  }
   const avg = res.reduce((a, r) => a + r.shots, 0) / res.length;
   const rec = { ts: new Date().toISOString(), name, boards: seeds.length, avgShots: Math.round(avg * 10) / 10, score: score(avg), fallbacks: res.reduce((a, r) => a + r.fallbacks, 0), bot: !name.includes("/") };
   appendFileSync(BENCH, JSON.stringify(rec) + "\n");
+  Object.assign(LIVE, { status: "done", final: rec }); flush(true);
   console.log(`${name}: avg ${rec.avgShots} shots · score ${rec.score}`);
 }
 
@@ -145,5 +203,6 @@ if (cmd === "bots") {
   await bench("Probability bot", (s) => playBot(botProb, s), SEEDS.length);
   readme();
 } else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards); readme(); }
+else if (cmd === "boards") await genBoards();
 else if (cmd === "readme") readme();
-else console.log("usage: node bench.mjs bots | run <provider/model> [--boards N] | readme");
+else console.log("usage: node bench.mjs boards | bots | run <provider/model> [--boards N] | readme");

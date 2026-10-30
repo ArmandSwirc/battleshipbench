@@ -144,6 +144,12 @@ async function handle(req, res) {
   }
   if (req.method === "GET" && path === "/api/scores") return json(res, 200, { scores: scoreboard(loadMatches()), matches: loadMatches().slice(-30).reverse() });
 
+  if (req.method === "GET" && path === "/bench") return void res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }).end(readFileSync(fileURLToPath(new URL("./bench.html", import.meta.url))));
+  if (req.method === "GET" && path === "/api/bench/live") {
+    const f = fileURLToPath(new URL("./bench-live.json", import.meta.url));
+    return void res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(existsSync(f) ? readFileSync(f) : '{"status":"idle"}');
+  }
+
   if (req.method === "GET" && path === "/api/providers") return json(res, 200, load().map(pub));
 
   if (req.method === "POST" && path === "/api/providers") {

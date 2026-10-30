@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BattleshipBench · Live</title>
+<style>
+:root{--page:#f3f2ee;--raised:#fbfaf7;--sunk:#eae8e2;--ink:#121211;--ink-2:#4a4843;--ink-3:#6b685f;--line:#dcd9d1;--a:#1b9c6e;--b:#e0612c;--bad:#c8372d;--ship:#b9b5a9;--water:#e6e3db;
+--sans:"IBM Plex Sans",system-ui,-apple-system,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Menlo,monospace}
+@media(prefers-color-scheme:dark){:root{--page:#0c0c0b;--raised:#151514;--sunk:#161615;--ink:#ebe9e4;--ink-2:#aeaca5;--ink-3:#8f8d86;--line:#232220;--a:#2fc08d;--b:#ee7a45;--bad:#e5564b;--ship:#4a4843;--water:#171716}}
+*{box-sizing:border-box}body{margin:0;background:var(--page);color:var(--ink);font:14px/1.45 var(--sans)}
+header{display:flex;align-items:center;gap:14px;padding:14px 24px;border-bottom:1px solid var(--line)}
+h1{margin:0;font-size:18px;letter-spacing:-.01em}h1 b{color:var(--b)}
+.pill{font:12px var(--mono);padding:3px 9px;border:1px solid var(--line);border-radius:99px;color:var(--ink-2)}
+.pill.live{color:var(--a);border-color:var(--a)}.pill.done{color:var(--b);border-color:var(--b)}
+main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:24px;padding:24px;max-width:1300px;margin:auto}
+@media(max-width:900px){main{grid-template-columns:1fr}}
+.card{background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:16px}
+h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.grid{display:grid;grid-template-columns:22px repeat(10,1fr);gap:3px}
+.grid i{font:11px var(--mono);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-style:normal}
+.c{aspect-ratio:1;border-radius:2px;background:var(--water);display:flex;align-items:center;justify-content:center;font:600 12px var(--mono)}
+.c{position:relative;color:var(--ink-3)}.c.sh{background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 70%,transparent)}.c.sh::before{content:attr(data-l);position:absolute;font:600 11px var(--mono);color:var(--sc);opacity:.9}.c.sh.o::before{display:none}.c.X{box-shadow:inset 0 0 0 2px var(--sc)}.c.sunk{background:color-mix(in srgb,var(--sc) 55%,#000)}.c.o::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.c.X{background:var(--bad);color:#fff}.c.X::after{content:"✕"}.c.X::before{display:none}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.stat b{display:block;font:600 24px var(--mono);letter-spacing:-.02em}.stat span{font:11px var(--mono);color:var(--ink-3);text-transform:uppercase}
+.bar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;margin:6px 0 14px}.bar div{height:100%;background:var(--b);width:0;transition:width .4s}
+.chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font:12px var(--mono);padding:3px 8px;border:1px solid var(--line);border-radius:3px;background:var(--sunk)}
+.chip.cur{border-color:var(--b);color:var(--b)}
+pre{margin:0;white-space:pre-wrap;word-break:break-word;font:12px/1.5 var(--mono);color:var(--ink-2);max-height:230px;overflow:auto}
+.log{display:flex;flex-wrap:wrap;gap:5px}.m{font:12px var(--mono);padding:2px 7px;border-radius:3px;background:var(--sunk);color:var(--ink-3)}
+.m.hit{background:var(--bad);color:#fff}.m.sunk{background:#7d1f19;color:#fff}
+.fleet{display:grid;gap:6px;margin-top:12px}.fl{display:flex;align-items:center;gap:10px;font:12px var(--mono);color:var(--ink-2)}
+.fl .sw{display:flex;gap:2px}.fl .sw i{width:12px;height:12px;border-radius:2px;background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px var(--sc)}.fl .sw i.x{background:var(--bad)}
+.fl.dead{color:var(--ink-3);text-decoration:line-through}.fl b{min-width:92px;font-weight:600;color:var(--ink)}
+nav{margin-left:8px;display:flex;gap:6px}nav a{font:12px var(--mono);color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:3px;padding:3px 9px}nav a:hover{border-color:var(--ink-3)}
+details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}details p{margin:10px 0 0}
+.score{font:600 40px var(--mono);color:var(--b);letter-spacing:-.03em}
+.col{display:flex;flex-direction:column;gap:16px}
+</style></head><body>
+<header><h1>Battleship<b>Bench</b> <span style="font-weight:400;color:var(--ink-3)">· Gauntlet live</span></h1>
+<nav><a href="/">← 1v1 arena</a></nav><span class="pill" id="model">–</span><span class="pill" id="state">idle</span><span style="margin-left:auto" class="pill" id="upd"></span></header>
+<main>
+<div class="col"><section class="card"><h2>Board <span id="bseed"></span></h2><div class="grid" id="grid"></div>
+<div class="fleet" id="fleet"></div><p style="margin:12px 0 0;font:11px var(--mono);color:var(--ink-3)">Ships are shown for you only; the model sees just its own shots.</p></section>
+<section class="card"><details><summary>How the boards are made</summary>
+<p><b>Fixed &amp; shared.</b> All models play the same 10 boards (<code>boards.json</code>), so scores are comparable and reproducible.</p>
+<p><b>Difficult.</b> For each board, 300 random legal fleets were generated and each was played by the probability-density bot (3 times). The fleet that bot needed the most shots to find was kept. Fleets hide where density heuristics look least.</p>
+<p><b>Realistic.</b> Only plausible fleets qualify: standard fleet (5-4-3-3-2), ships straight and non-overlapping, may touch, 2-3 horizontal ships (mixed orientation), at most 2 ships flush against the border.</p>
+<p><b>Score.</b> 100 × (100 − avg shots) / 83. 100 = 17 shots; 0 = not finished in 100.</p></details></section></div>
+<div class="col">
+ <section class="card"><div class="stats">
+  <div class="stat"><b id="n">0</b><span>shots</span></div><div class="stat"><b id="h">0</b><span>hits</span></div>
+  <div class="stat"><b id="acc">–</b><span>accuracy</span></div><div class="stat"><b id="fb">0</b><span>auto-moves</span></div></div>
+  <h2>Fleet sunk <span id="sunk"></span></h2><div class="bar"><div id="bp"></div></div>
+  <h2>Boards <span id="bc"></span></h2><div class="chips" id="chips"></div></section>
+ <section class="card" id="final" hidden><h2>Result</h2><div class="score" id="fs"></div><div id="fd" style="color:var(--ink-2)"></div></section>
+ <section class="card"><h2>Thinking <span id="tk"></span></h2><pre id="think">–</pre></section>
+ <section class="card"><h2>Moves</h2><div class="log" id="log"></div></section>
+</div></main>
+<script>
+const $=s=>document.querySelector(s),COLS="ABCDEFGHIJ",COL={Carrier:"#6f9be0",Battleship:"#a98be0",Cruiser:"#3fb8a4",Submarine:"#d9b24a",Destroyer:"#e07aa8"};
+const g=$("#grid");g.innerHTML="<i></i>"+[...COLS].map(c=>`<i>${c}</i>`).join("");
+for(let r=0;r<10;r++){g.insertAdjacentHTML("beforeend",`<i>${r+1}</i>`);for(let c=0;c<10;c++)g.insertAdjacentHTML("beforeend",`<div class="c" id="c${r}_${c}"></div>`)}
+async function tick(){
+ let s;try{s=await (await fetch("/api/bench/live",{cache:"no-store"})).json()}catch{return}
+ $("#model").textContent=s.name??"–";
+ const st=$("#state");st.textContent=s.status;st.className="pill "+(s.status==="done"?"done":s.status==="idle"?"":"live");
+ if(s.updatedAt)$("#upd").textContent=new Date(s.updatedAt).toLocaleTimeString();
+ if(!s.cells)return;
+ $("#bseed").textContent=`· ${s.boardIdx}/${s.boards} (seed ${s.seed})`;
+ const hitsOf=s.fleet.map(()=>0);
+ for(let r=0;r<10;r++)for(let c=0;c<10;c++){const i=s.shipGrid[r][c];if(i>=0&&s.cells[r][c]==="X")hitsOf[i]++}
+ for(let r=0;r<10;r++)for(let c=0;c<10;c++){const e=$(`#c${r}_${c}`),v=s.cells[r][c],i=s.shipGrid[r][c];
+  e.className="c"+(i>=0?" sh":"")+(v?" "+v:"")+(i>=0&&hitsOf[i]===s.fleet[i].len?" sunk":"");
+  if(i>=0){e.style.setProperty("--sc",COL[s.fleet[i].name]);e.dataset.l=s.fleet[i].name[0]}else{e.style.removeProperty("--sc");delete e.dataset.l}}
+ $("#fleet").innerHTML=s.fleet.map((f,i)=>`<div class="fl${hitsOf[i]===f.len?" dead":""}" style="--sc:${COL[f.name]}"><b>${f.name}</b><span class="sw">${Array.from({length:f.len},(_,k)=>`<i class="${k<hitsOf[i]?"x":""}"></i>`).join("")}</span><span>${hitsOf[i]===f.len?"sunk":hitsOf[i]+"/"+f.len}</span></div>`).join("")
+ const n=s.shots.length,h=s.shots.filter(x=>x.result!=="miss").length;
+ $("#n").textContent=n;$("#h").textContent=h;$("#acc").textContent=n?Math.round(100*h/n)+"%":"–";$("#fb").textContent=s.fallbacks??0;
+ $("#sunk").textContent=`${s.sunk.length}/5`;$("#bp").style.width=(s.sunk.length*20)+"%";
+ const dn=s.results.length;$("#bc").textContent=`· ${dn}/${s.boards} done`;
+ $("#chips").innerHTML=s.results.map((r,i)=>`<span class="chip">#${i+1} · ${r.shots} shots</span>`).join("")+(s.status!=="done"?`<span class="chip cur">#${dn+1} · ${n} shots…</span>`:"");
+ const t=s.askStart&&s.status==="thinking"?Math.round((Date.now()-s.askStart)/1000)+"s · ":"";
+ $("#tk").textContent=s.thinkChars?`· ${t}${s.thinkChars} chars`:"";
+ const th=$("#think");if(s.think&&th.textContent!==s.think){th.textContent=s.think;th.scrollTop=th.scrollHeight}else if(!s.think)th.textContent="–";
+ $("#log").innerHTML=s.shots.map(x=>`<span class="m ${x.result.startsWith("sunk")?"sunk":x.result==="hit"?"hit":""}">${x.cell}${x.result==="miss"?"":x.result.startsWith("sunk")?" ✕ "+x.result.slice(5):" ✕"}</span>`).join("");
+ const f=$("#final");f.hidden=!s.final;if(s.final){$("#fs").textContent=s.final.score;$("#fd").textContent=`score 0–100 · avg ${s.final.avgShots} shots over ${s.final.boards} boards · ${s.final.fallbacks} auto-moves`}
+}
+tick();setInterval(tick,600);
+</script></body></html>
