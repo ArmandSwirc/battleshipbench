@@ -1,0 +1,574 @@
+{
+ "model": "claude-sonnet-5-5 vs gpt-6.1-terra",
+ "kind": "arena",
+ "models": [
+  "anthropic/claude-sonnet-5-5",
+  "openrouter/openai/gpt-6.1-terra"
+ ],
+ "games": [
+  {
+   "ts": "2026-10-30T08:52:01.336Z",
+   "mode": "dossier",
+   "winner": "A",
+   "a": {
+    "model": "anthropic/claude-sonnet-5-5",
+    "shots": 34,
+    "hits": 17,
+    "fallbacks": 0,
+    "ownPlacement": true,
+    "placement": "Ik volg mijn vaste, gespreide opstelling: Carrier verticaal op de rand (J2), Battleship horizontaal onderin (B8), Cruiser verticaal links van het midden (D3), Submarine verticaal rechtsonder van het midden (G6) en Destroyer op de onderrand (H10), zonder overlap en zonder duidelijk patroon.",
+    "strategyName": "Dichtheidsjager met pariteit",
+    "strategy": "DOEL: de vijandelijke vloot in zo min mogelijk beurten zinken. Mijn plaatsing kan het tempo van de tegenstander niet veranderen, dus ik win door efficiënt schieten. Veiligheid is alleen een kwestie van een lastig te raden opstelling. Tijdens het spel offer ik nooit schotefficiëntie op voor 'veiligheid'.\n\n(1) PLAATSING (vast, niet-voorspelbaar, gespreid)\nIk vermijd de patronen die jagers als eerste testen: een rij ships naast elkaar, alles in de hoeken, alles in het midden. Ik meng rand en binnenveld, horizontaal en verticaal, en houd schepen grotendeels uit elkaars buurt, zodat één treffer niet snel naar een tweede schip leidt.\nVaste opstelling:\n- Carrier (5): J2, J3, J4, J5, J6 (verticaal op de rand).\n- Battleship (4): B8, C8, D8, E8 (horizontaal, onderin).\n- Cruiser (3): D3, D4, D5 (verticaal, links van het midden).\n- Submarine (3): G6, G7, G8 (verticaal, rechtsonder van het midden).\n- Destroyer (2): H10, I10 (onderrand).\nZe overlappen niet en liggen verspreid over alle kwadranten.\n\n(2) ZOEKEN (hunt-modus, niets geraakt of alles gezonken/verklaard)\n- Hou een mentaal bord bij: raak, mis, gezonken schip. Gebruik alleen de nog levende scheepslengtes.\n- Kies de cel met de grootste kans: het aantal manieren waarop nog levende schepen (horizontaal of verticaal) die cel kunnen bedekken zonder misses of gezonken cellen te raken. Centrale cellen scoren meestal hoger, dus begin rond E5, F6, E6, F5 en werk naar buiten.\n- Pariteit: zolang de Destroyer (2) leeft, schiet ik alleen op een schaakbordpatroon, cellen waar kolomnummer + rijnummer even is (A=1, B=2, ...). Elk schip van 2 of meer raakt dan minstens één van die cellen.\n- Is de Destroyer gezonken, dan is het kleinste schip 3. Ik schiet dan een verder uit elkaar liggend patroon: (kolom + rij) deelbaar door 3 of een gelijkwaardig diagonaal patroon met afstand 3, nog steeds gekozen op hoogste kans.\n- Is alleen nog een schip van 4 of 5 over, dan pas ik de afstand aan (4 of 5) en laat de kansberekening beslissen.\n- Bij gelijke kans: liever dichter bij het midden, en liever in een groot onbeschoten gebied.\n- Schiet niet op cellen waar geen enkel levend schip meer past, zoals losse gaten kleiner dan het kleinste levende schip.\n\n(3) AFMAKEN (target-modus, bij een treffer)\n- Zodra een treffer geen verklaard schip is, ga ik in target-modus en laat ik hunt-modus even rusten.\n- Eén treffer: schiet op de vier buren. Begin met de buur met de meeste vrije ruimte in die richting, en sla buren over waar geen levend schip meer past.\n- Twee of meer treffers op een lijn: ken de richting vast en schiet verder langs die lijn aan één uiteinde. Is dat uiteinde mis of rand, ga dan naar het andere uiteinde. Pas zijwaarts proberen als beide uiteinden dicht zijn en het schip nog niet gezonken is.\n- Als het systeem zegt dat een schip gezonken is, markeer ik exact zoveel treffercellen in die lijn als de scheepslengte. Zijn er daarna nog treffers die niet verklaard zijn (bijvoorbeeld omdat schepen elkaar raken), dan ga ik direct door in target-modus op die cellen, want er zit dan een ander schip.\n- Past een lijn van treffers langer dan het langste levende schip, dan zijn het twee schepen naast elkaar. Probeer dan de zijkanten.\n- Pas na het volledig afmaken van alle onverklaarde treffers ga ik terug naar hunt-modus.\n\nALGEMENE REGELS\n- Elke beurt eerst controleren: welke schepen leven nog, welke treffers zijn nog niet verklaard, wat is de kleinste levende lengte.\n- Snelheid boven voorzichtigheid: elke beurt de schot met de hoogste verwachte opbrengst, geen willekeurige schoten, geen herhaling.\n- Afwijken van pariteit mag alleen als een treffer-cluster of een grote onbeschoten ruimte dat duidelijk beter maakt.\n- Als de tegenstander voorsprong heeft, blijf ik hetzelfde plan volgen; paniek en gokken verlagen de kans op winst.",
+    "foeFleet": [
+     {
+      "name": "Carrier",
+      "len": 5,
+      "cells": [
+       [
+        3,
+        9
+       ],
+       [
+        4,
+        9
+       ],
+       [
+        5,
+        9
+       ],
+       [
+        6,
+        9
+       ],
+       [
+        7,
+        9
+       ]
+      ]
+     },
+     {
+      "name": "Battleship",
+      "len": 4,
+      "cells": [
+       [
+        1,
+        1
+       ],
+       [
+        1,
+        2
+       ],
+       [
+        1,
+        3
+       ],
+       [
+        1,
+        4
+       ]
+      ]
+     },
+     {
+      "name": "Cruiser",
+      "len": 3,
+      "cells": [
+       [
+        8,
+        6
+       ],
+       [
+        8,
+        7
+       ],
+       [
+        8,
+        8
+       ]
+      ]
+     },
+     {
+      "name": "Submarine",
+      "len": 3,
+      "cells": [
+       [
+        5,
+        2
+       ],
+       [
+        6,
+        2
+       ],
+       [
+        7,
+        2
+       ]
+      ]
+     },
+     {
+      "name": "Destroyer",
+      "len": 2,
+      "cells": [
+       [
+        3,
+        5
+       ],
+       [
+        3,
+        6
+       ]
+      ]
+     }
+    ],
+    "moves": [
+     {
+      "cell": "E5",
+      "result": "miss",
+      "why": "Eerste schot in het midden op een pariteitscel (E=5 + rij 5 = 10, even) met de hoogste kans."
+     },
+     {
+      "cell": "F6",
+      "result": "miss",
+      "why": "Centrale cel op het schaakbordpatroon (kolom+rij even) met hoge kans, naast de eerdere misser op E5."
+     },
+     {
+      "cell": "F4",
+      "result": "hit",
+      "why": "Pariteitscel (kolom+rij even) dicht bij het midden met veel vrije ruimte rondom."
+     },
+     {
+      "cell": "G4",
+      "result": "sunk Destroyer",
+      "why": "Treffer op F4: horizontaal heeft de meeste vrije ruimte, dus ik schiet op de buur G4."
+     },
+     {
+      "cell": "E7",
+      "result": "miss",
+      "why": "Destroyer is gezonken, dus ik schiet nu op een patroon met afstand 3 (kolom+rij deelbaar door 3); E7 ligt centraal met veel vrije ruimte rond de misses E5 en F6."
+     },
+     {
+      "cell": "H7",
+      "result": "miss",
+      "why": "Het kleinste levende schip is 3, dus ik schiet op het patroon met kolom+rij deelbaar door 3. H7 ligt centraal in een groot onbeschoten gebied waar alle levende schepen passen."
+     },
+     {
+      "cell": "D6",
+      "result": "miss",
+      "why": "Destroyer is gezonken, dus ik schiet nu een patroon met afstand 3 op een open cel met veel ruimte voor de grote schepen, in het onbeschoten linkerdeel."
+     },
+     {
+      "cell": "E3",
+      "result": "miss",
+      "why": "E3 ligt in een groot open gebied waar nog alle levende schepen (3, 3, 4 en 5) horizontaal en verticaal passen, en het ligt weg van de misses."
+     },
+     {
+      "cell": "C4",
+      "result": "miss",
+      "why": "Open gebied links met veel ruimte voor lange schepen horizontaal en verticaal, dus hier is de kans op een treffer het grootst."
+     },
+     {
+      "cell": "H5",
+      "result": "miss",
+      "why": "H5 ligt in een groot open gebied rechts: de rij biedt 5 vrije cellen en de kolom 6, dus daar passen alle resterende schepen het vaakst."
+     },
+     {
+      "cell": "G8",
+      "result": "miss",
+      "why": "Open ruimte in rij 8 en kolom G en (kolom+rij)=15 is deelbaar door 3, dus past bij het patroon voor schepen van minimaal 3."
+     },
+     {
+      "cell": "D9",
+      "result": "miss",
+      "why": "D9 ligt in een groot onbeschoten gebied, waar rij 9 en kolom D (D7-D10) nog ruimte laten voor alle resterende schepen."
+     },
+     {
+      "cell": "D2",
+      "result": "hit",
+      "why": "D2 ligt in een groot onbeschoten gebied bovenin en past op het patroon met afstand 3 (kolom+rij deelbaar door 3), zodat Carrier, Battleship en beide 3-schepen er horizontaal of verticaal overheen kunnen liggen."
+     },
+     {
+      "cell": "E2",
+      "result": "hit",
+      "why": "D2 is nog een onverklaarde treffer en rij 2 heeft de meeste vrije ruimte, dus ik probeer eerst de buur E2."
+     },
+     {
+      "cell": "F2",
+      "result": "miss",
+      "why": "D2 en E2 liggen horizontaal naast elkaar, dus ik verleng de lijn naar rechts met F2 (gelijke kans als C2, maar meer ruimte rechts)."
+     },
+     {
+      "cell": "C2",
+      "result": "hit",
+      "why": "D2 en E2 liggen horizontaal naast elkaar en F2 is mis, dus ik maak het schip af via de open kant bij C2."
+     },
+     {
+      "cell": "B2",
+      "result": "sunk Battleship",
+      "why": "Drie treffers op een rij (C2-E2) met F2 als misser, dus het schip loopt waarschijnlijk door naar links; B2 is de logische voortzetting."
+     },
+     {
+      "cell": "I3",
+      "result": "miss",
+      "why": "Kolom I is volledig vrij en rij 3 heeft vijf vrije cellen (F3-J3), dus hier passen de meeste plaatsingen van de Carrier, Cruiser en Submarine."
+     },
+     {
+      "cell": "I6",
+      "result": "miss",
+      "why": "Ruime open ruimte rechts: in kolom I en rij 6 passen veel plaatsingen van Carrier, Cruiser en Submarine, en de cel ligt op het 3-afstandspatroon."
+     },
+     {
+      "cell": "C8",
+      "result": "hit",
+      "why": "Het open gebied linksonder laat op C8 veel plaatsingen toe voor Carrier, Cruiser en Submarine, horizontaal in rij 8 en verticaal in kolom C."
+     },
+     {
+      "cell": "D8",
+      "result": "miss",
+      "why": "Ik maak de onverklaarde treffer op C8 af; D8 ligt in rij 8 met genoeg ruimte voor een Carrier, Cruiser of Submarine."
+     },
+     {
+      "cell": "C7",
+      "result": "hit",
+      "why": "C8 is de enige onverklaarde treffer. Verticaal in kolom C past een schip van 3 of 5 het best, dus ik schiet op de buur C7 richting het open midden."
+     },
+     {
+      "cell": "C9",
+      "result": "miss",
+      "why": "C7 en C8 liggen verticaal op één lijn, dus ik schiet door langs die lijn aan de onderkant (C9) om het schip af te maken."
+     },
+     {
+      "cell": "C6",
+      "result": "sunk Submarine",
+      "why": "C7 en C8 liggen onder elkaar en C9 is mis, dus C6 is de enige manier om de verticale lijn van drie te voltooien."
+     },
+     {
+      "cell": "A5",
+      "result": "miss",
+      "why": "De Carrier past alleen nog in rij 1, rij 10, rij 9 (E-J), kolom A, kolom B (3-10) of kolom J; A5 dekt de meeste plaatsingen van Carrier en Cruiser."
+     },
+     {
+      "cell": "F10",
+      "result": "miss",
+      "why": "Alleen Carrier (5) en Cruiser (3) leven nog; onderrij 10 is volledig onbeschoten en F10 wordt door de meeste mogelijke plaatsingen gedekt."
+     },
+     {
+      "cell": "J5",
+      "result": "hit",
+      "why": "Kolom J is een lange vrije lijn waar Carrier en Cruiser veel posities hebben, en J5 dekt de meeste combinaties."
+     },
+     {
+      "cell": "J6",
+      "result": "hit",
+      "why": "Treffer op J5 kan niet horizontaal doorlopen omdat H5 mis is en I5 te weinig ruimte laat, dus het schip ligt verticaal en ik schiet door naar J6 waar de meeste ruimte is."
+     },
+     {
+      "cell": "J4",
+      "result": "hit",
+      "why": "J5 en J6 vormen een verticale lijn in kolom J, dus ik ga door aan de bovenkant; J4 en J7 hebben gelijke kans en ik kies J4."
+     },
+     {
+      "cell": "J7",
+      "result": "hit",
+      "why": "De drie treffers J4-J6 vormen een lijn die nog niet gezonken is, dus het is waarschijnlijk de Carrier; ik schiet het uiteinde J7 af om de lijn te verlengen."
+     },
+     {
+      "cell": "J8",
+      "result": "sunk Carrier",
+      "why": "De vier treffers J4-J7 vormen een verticale lijn, dus ik schiet door aan het onderste uiteinde bij J8 om de Carrier af te maken."
+     },
+     {
+      "cell": "H9",
+      "result": "hit",
+      "why": "Alleen de Cruiser (3) leeft nog; H9 ligt in een open gebied rechtsonder en wordt door de meeste mogelijke plaatsingen gedekt (3 horizontaal, 1 verticaal)."
+     },
+     {
+      "cell": "G9",
+      "result": "hit",
+      "why": "Treffer op H9 is nog niet gezonken; G9 ligt in twee van de vier mogelijke Cruiser-posities (F9-H9 en G9-I9), dus de grootste kans."
+     },
+     {
+      "cell": "I9",
+      "result": "sunk Cruiser",
+      "why": "G9 en H9 liggen horizontaal, dus de Cruiser (3) ligt op F9-H9 of G9-I9; ik probeer I9 eerst."
+     }
+    ]
+   },
+   "b": {
+    "model": "openrouter/openai/gpt-6.1-terra",
+    "shots": 33,
+    "hits": 15,
+    "fallbacks": 0,
+    "ownPlacement": true,
+    "placement": "De carrier ligt langs een rand en de overige schepen zijn verspreid met weinig onderling contact.",
+    "strategyName": "Rand en Raak",
+    "strategy": "Doel: als eerste de hele vloot laten zinken. Wees aanvallend: een misser kost één beurt, maar er is geen reden om een kansrijk schot uit te stellen om ‘veilig’ te spelen. Benut informatie voor snellere volgende schoten; neem geen risico om de eigen vloot te beschermen nadat die is geplaatst.\n\n1. Plaatsing\nMaak de plaatsing onvoorspelbaar en kies haar vóór het eerste schot. Gebruik twee mogelijkheden met ongeveer gelijke kans:\n- Trek een volledige willekeurige geldige vloot: kies voor ieder schip willekeurig een horizontale of verticale lijn van de juiste lengte en verwerp de hele trekking bij overlap.\n- Kies willekeurig de carrier of het slagschip en leg dat schip willekeurig langs een bordrand. Trek de overige schepen willekeurig zonder overlap. Maak zo enkele geldige vloten en kies daaruit bij voorkeur een vloot waarvan verschillende schepen weinig orthogonaal aan elkaar grenzen; breek gelijke keuzes willekeurig.\n\nAlle schepen moeten volledig op het bord liggen en mogen elkaar niet overlappen. Aanraking is wel toegestaan; maak er geen harde regel van dat schepen gescheiden moeten zijn. Gebruik geen steeds terugkerend vast patroon.\n\n2. Administratie en redenering\nNoteer na iedere beurt alle eigen schoten in volgorde, met misser, raak of het aangekondigde gezonken schip. Schiet nooit opnieuw op een cel. Houd de lengtes en namen bij van de schepen die nog niet als gezonken zijn gemeld.\n\nVerwar een melding van zinken niet met kennis van de exacte ligging van dat schip: bij rakende schepen kunnen meerdere toewijzingen van eerdere treffers mogelijk zijn. Blijf alle aannemelijke toewijzingen overwegen. Een mogelijke vijandelijke vloot moet overeenkomen met alle missers, treffers, niet-overlappende schepen en de volgorde en identiteit van de zinkmeldingen. Een schip kan bijvoorbeeld niet al vóór zijn aangekondigde zinkbeurt volledig geraakt zijn. Een eenmaal gezonken schip is geen volgend doel, maar zijn onbekende ligging kan voor de interpretatie van andere treffers nog relevant zijn.\n\nBereken waar praktisch mogelijk per onbeschoten cel hoe vaak zij in zulke mogelijke vloten door een nog drijvend schip wordt bezet. Een gelijkmatige verdeling over geldige vloten is een bruikbaar uitgangspunt, geen zekerheid over de tegenstander. Als volledige berekening niet haalbaar is, benader dit door geldige plaatsingen van de resterende schepen te tellen, met extra aandacht voor plaatsingen die open treffers verklaren. Doe geen alsof geschatte kansen exact zijn.\n\n3. Zoeken zonder open treffer\nEen treffer is open zolang niet met voldoende zekerheid vaststaat dat zij bij een reeds gezonken schip hoort. Zijn alle treffers afgehandeld, zoek dan met een rooster. Nummer kolommen A–J als 1–10. Neem m gelijk aan de lengte van het kortste nog drijvende schip en kies één restklasse k voor (kolomnummer + rijnummer) modulo m. Iedere horizontale of verticale lijn van minstens m cellen raakt die klasse. Kies uit de nog onbeschoten cellen van die klasse steeds een cel met hoge geschatte bezettingskans; gebruik plaatsingstellingen, bekende missers en gezonken schepen. Breek gelijke keuzes bij voorkeur zo dat het resterende zoekgebied goed wordt gedekt.\n\nKies de restklasse bij voorkeur zo dat zij veel kansrijke, nog onbeschoten cellen bevat. Houd haar aan tijdens deze zoekfase; heroverweeg haar wanneer de kortste resterende scheepslengte verandert of de informatie een andere klasse duidelijk gunstiger maakt. Aanvankelijk is m=2, dus dit is een schaakbordpatroon. Nadat de destroyer is gezonken kan m=3 worden gebruikt, zolang alle resterende schepen minstens drie cellen lang zijn. Het rooster is een zoekhulpmiddel, geen verbod op schoten daarbuiten tijdens achtervolging.\n\n4. Na een treffer\nGeef voorrang aan het afmaken van waarschijnlijk al geraakte schepen. Overweeg alle onbeschoten cellen die in een consistente hypothese een drijvend schip met een eerdere treffer kunnen uitbreiden, ook buiten het zoekrooster. Bij één geïsoleerde treffer zijn dat normaal de geldige orthogonale buren. Bij twee treffers op één lijn zijn de verlengingen aan beide uiteinden vaak kansrijk; een tussenliggende onbeschoten cel kan eveneens kansrijk zijn. Schrap richtingen en lengtes die door een rand, misser of andere vaststaande informatie onmogelijk zijn.\n\nBlijf voorzichtig: aangrenzende treffers kunnen bij twee verschillende, elkaar rakende schepen horen. Leid daarom niet uitsluitend uit nabijheid af dat treffers bij hetzelfde schip horen. Zijn er meerdere open treffers of mogelijke doelen, vergelijk dan hun kansrijke vervolgcellen en behandel zo nodig meerdere verklaringen tegelijk. Ga na een zinkmelding door met eventuele andere open treffers; keer pas terug naar het zoekrooster wanneer alle treffers zijn afgehandeld.\n\nAls bruikbare kansen beschikbaar zijn, vergelijk kandidaatcellen met de score P(raak) + 0,6 × P(raak op een al eerder geraakt, nog drijvend schip) + 0,4 × P(zinken). Deze bonussen bevorderen afmaken zonder een veel kansrijker alternatief blind te negeren. Kies een cel met de hoogste score; gebruik bij een gelijke score de verwachte informatie of dekking als beslisser. Zonder betrouwbare kansschattingen: kies de cel die door de meeste consistente, trefwerken-verklarende plaatsingen wordt ondersteund, met voorkeur voor een plausibele afronding. Controleer bij een schijnbare tegenspraak eerst de administratie en mogelijke toewijzingen, in plaats van een spelregel over boord te zetten.",
+    "foeFleet": [
+     {
+      "name": "Carrier",
+      "len": 5,
+      "cells": [
+       [
+        1,
+        9
+       ],
+       [
+        2,
+        9
+       ],
+       [
+        3,
+        9
+       ],
+       [
+        4,
+        9
+       ],
+       [
+        5,
+        9
+       ]
+      ]
+     },
+     {
+      "name": "Battleship",
+      "len": 4,
+      "cells": [
+       [
+        7,
+        1
+       ],
+       [
+        7,
+        2
+       ],
+       [
+        7,
+        3
+       ],
+       [
+        7,
+        4
+       ]
+      ]
+     },
+     {
+      "name": "Cruiser",
+      "len": 3,
+      "cells": [
+       [
+        2,
+        3
+       ],
+       [
+        3,
+        3
+       ],
+       [
+        4,
+        3
+       ]
+      ]
+     },
+     {
+      "name": "Submarine",
+      "len": 3,
+      "cells": [
+       [
+        5,
+        6
+       ],
+       [
+        6,
+        6
+       ],
+       [
+        7,
+        6
+       ]
+      ]
+     },
+     {
+      "name": "Destroyer",
+      "len": 2,
+      "cells": [
+       [
+        9,
+        7
+       ],
+       [
+        9,
+        8
+       ]
+      ]
+     }
+    ],
+    "moves": [
+     {
+      "cell": "F6",
+      "result": "miss",
+      "why": "Een centraal veld heeft veel mogelijke scheepsplaatsingen."
+     },
+     {
+      "cell": "E5",
+      "result": "miss",
+      "why": "Dit centrale roostervak past bij veel mogelijke scheepsplaatsingen."
+     },
+     {
+      "cell": "D4",
+      "result": "hit",
+      "why": "Deze roostercel ondersteunt veel mogelijke scheepsplaatsingen."
+     },
+     {
+      "cell": "C4",
+      "result": "miss",
+      "why": "Deze cel kan de treffer op D4 vervolgen en ligt gunstig voor verdere verkenning."
+     },
+     {
+      "cell": "D5",
+      "result": "hit",
+      "why": "D5 verlengt de treffer op D4 en past bij veel mogelijke scheepsliggingen."
+     },
+     {
+      "cell": "D3",
+      "result": "sunk Cruiser",
+      "why": "Dit schot verlengt de reeks treffers en test ook of D4 bij een apart schip hoort."
+     },
+     {
+      "cell": "G8",
+      "result": "hit",
+      "why": "Deze cel ligt op het zoekrooster en past bij veel mogelijke scheepsplaatsingen."
+     },
+     {
+      "cell": "F8",
+      "result": "miss",
+      "why": "Deze cel verlengt de open treffer G8 in een kansrijke richting."
+     },
+     {
+      "cell": "G7",
+      "result": "hit",
+      "why": "Deze cel verlengt de open treffer G8 in de meest kansrijke richting."
+     },
+     {
+      "cell": "G6",
+      "result": "sunk Submarine",
+      "why": "Dit veld verlengt waarschijnlijk het schip dat bij G7 en G8 is geraakt."
+     },
+     {
+      "cell": "H4",
+      "result": "miss",
+      "why": "Deze cel heeft veel mogelijke plaatsingen van de resterende schepen en past in het zoekrooster."
+     },
+     {
+      "cell": "D9",
+      "result": "miss",
+      "why": "Deze zoekroostercel ligt in een ruim, nog onverkend gebied."
+     },
+     {
+      "cell": "B6",
+      "result": "miss",
+      "why": "Deze zoekcel past in veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "I5",
+      "result": "miss",
+      "why": "Deze cel dekt veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "F2",
+      "result": "miss",
+      "why": "Hier zijn veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "C7",
+      "result": "miss",
+      "why": "Deze centrale cel past in veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "G1",
+      "result": "miss",
+      "why": "Deze cel past in veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "A5",
+      "result": "miss",
+      "why": "Deze roostercel heeft een hoge geschatte bezettingskans."
+     },
+     {
+      "cell": "E10",
+      "result": "miss",
+      "why": "Hier passen relatief veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "J6",
+      "result": "hit",
+      "why": "Deze cel past in veel mogelijke plaatsingen van de grote overgebleven schepen."
+     },
+     {
+      "cell": "J7",
+      "result": "miss",
+      "why": "J7 kan de treffer op J6 verlengen en mogelijk direct de destroyer laten zinken."
+     },
+     {
+      "cell": "J5",
+      "result": "hit",
+      "why": "Deze cel kan de treffer op J6 voor alle resterende scheepslengtes verlengen."
+     },
+     {
+      "cell": "J4",
+      "result": "hit",
+      "why": "De getroffen schepen bij J5 en J6 kunnen naar boven doorlopen."
+     },
+     {
+      "cell": "J3",
+      "result": "hit",
+      "why": "J3 verlengt de reeks treffers en past bij een nog drijvend schip."
+     },
+     {
+      "cell": "J2",
+      "result": "sunk Carrier",
+      "why": "Dit veld verlengt de reeks treffers en kan het vliegdekschip laten zinken."
+     },
+     {
+      "cell": "I9",
+      "result": "miss",
+      "why": "Dit zoekroostervak past bij veel mogelijke plaatsingen van beide resterende schepen."
+     },
+     {
+      "cell": "B2",
+      "result": "miss",
+      "why": "Hier passen relatief veel mogelijke plaatsingen van de resterende schepen."
+     },
+     {
+      "cell": "B8",
+      "result": "hit",
+      "why": "Deze cel past in meerdere mogelijke plaatsingen van beide overgebleven schepen."
+     },
+     {
+      "cell": "C8",
+      "result": "hit",
+      "why": "Deze cel verlengt de treffer B8 en past bij meerdere mogelijke scheepsliggingen."
+     },
+     {
+      "cell": "D8",
+      "result": "hit",
+      "why": "D8 verlengt de treffers B8 en C8 en past bij vrijwel alle aannemelijke scheepsposities."
+     },
+     {
+      "cell": "A8",
+      "result": "miss",
+      "why": "Dit kan het slagschip direct tot zinken brengen."
+     },
+     {
+      "cell": "E8",
+      "result": "sunk Battleship",
+      "why": "Dit verlengt de drie treffers en doet het slagschip zinken."
+     },
+     {
+      "cell": "G3",
+      "result": "miss",
+      "why": "Deze cel past in vier mogelijke posities van de resterende destroyer."
+     }
+    ]
+   }
+  }
+ ]
+}
