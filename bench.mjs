@@ -1,5 +1,5 @@
-// BattleshipBench "Gauntlet": elk model schiet solo op dezelfde vaste (geseede) borden; minder schoten = beter.
-// Absolute score, onafhankelijk van tegenstanders, herhaalbaar en goedkoop. Bots geven de meetlat.
+// BattleshipBench "Gauntlet": every model shoots solo on the same seeded boards; fewer shots = better.
+// Absolute score, independent of opponents, reproducible and cheap. Bots are the yardstick.
 //   node bench.mjs bots                         bots meten en opslaan
 //   node bench.mjs run anthropic/claude-haiku-5-5 [--boards 5]   (server.mjs moet draaien; sleutels blijven daar)
 //   node bench.mjs readme                       leaderboard in README.md bijwerken
@@ -98,7 +98,7 @@ async function playModel(model, seed) {
     fire(b, ...mv);
     process.stdout.write(done(b) ? "!" : b.shots[mv[0]][mv[1]].result === "miss" ? "." : "X");
   }
-  console.log(` bord ${seed}: ${b.count} schoten${done(b) ? "" : " (niet uitgespeeld)"} · ${fallbacks} auto-zetten`);
+  console.log(` board ${seed}: ${b.count} shots${done(b) ? "" : " (not finished)"} · ${fallbacks} auto-moves`);
   return { shots: done(b) ? b.count : MAX_SHOTS, fallbacks };
 }
 
@@ -111,7 +111,7 @@ async function bench(name, fn, boards) {
   const avg = res.reduce((a, r) => a + r.shots, 0) / res.length;
   const rec = { ts: new Date().toISOString(), name, boards: seeds.length, avgShots: Math.round(avg * 10) / 10, score: score(avg), fallbacks: res.reduce((a, r) => a + r.fallbacks, 0), bot: !name.includes("/") };
   appendFileSync(BENCH, JSON.stringify(rec) + "\n");
-  console.log(`${name}: gem. ${rec.avgShots} schoten · score ${rec.score}`);
+  console.log(`${name}: avg ${rec.avgShots} shots · score ${rec.score}`);
 }
 
 function readJsonl(f) { return existsSync(f) ? readFileSync(f, "utf8").split("\n").filter(Boolean).map((l) => JSON.parse(l)) : []; }
@@ -119,7 +119,7 @@ function readme() {
   const best = new Map();
   for (const r of readJsonl(BENCH)) { const o = best.get(r.name); if (!o || r.boards > o.boards || (r.boards === o.boards && r.ts > o.ts)) best.set(r.name, r); }
   const g = [...best.values()].sort((a, b) => b.score - a.score);
-  const gauntlet = ["| # | Model | Score | Gem. schoten | Borden | Auto-zetten |", "|--:|---|--:|--:|--:|--:|",
+  const gauntlet = ["| # | Model | Score | Avg shots | Boards | Auto-moves |", "|--:|---|--:|--:|--:|--:|",
     ...g.map((r, i) => `| ${i + 1} | ${r.bot ? "🤖 " : ""}${r.name.replace(/^[^/]+\//, "")} | **${r.score}** | ${r.avgShots} | ${r.boards} | ${r.fallbacks} |`)].join("\n");
   const M = new Map(), elo = new Map();
   for (const m of readJsonl(MATCHES)) {
@@ -130,20 +130,20 @@ function readme() {
     elo.set(w.model, ew + 32 * (1 - e)); elo.set(l.model, el - 32 * (1 - e));
   }
   const arena = [...M].map(([k, v]) => ({ k, ...v, elo: Math.round(elo.get(k) ?? 1000) })).sort((a, b) => b.elo - a.elo);
-  const arenaT = arena.length ? ["| # | Model | Elo | Winst | Partijen |", "|--:|---|--:|--:|--:|", ...arena.map((r, i) => `| ${i + 1} | ${r.k.replace(/^[^/]+\//, "")} | **${r.elo}** | ${r.w} | ${r.g} |`)].join("\n") : "_Nog geen partijen gespeeld._";
-  const block = `<!-- LEADERBOARD:START -->\n### Gauntlet (solo, vaste borden, 0-100)\n\n${gauntlet}\n\n### Arena (model tegen model, Elo)\n\n${arenaT}\n<!-- LEADERBOARD:END -->`;
+  const arenaT = arena.length ? ["| # | Model | Elo | Wins | Games |", "|--:|---|--:|--:|--:|", ...arena.map((r, i) => `| ${i + 1} | ${r.k.replace(/^[^/]+\//, "")} | **${r.elo}** | ${r.w} | ${r.g} |`)].join("\n") : "_No games played yet._";
+  const block = `<!-- LEADERBOARD:START -->\n### 🎯 Gauntlet (solo, fixed boards, 0-100)\n\n${gauntlet}\n\n### ⚔️ Arena (head-to-head, Elo)\n\n${arenaT}\n<!-- LEADERBOARD:END -->`;
   let t = readFileSync(README, "utf8");
   t = /<!-- LEADERBOARD:START -->[\s\S]*<!-- LEADERBOARD:END -->/.test(t) ? t.replace(/<!-- LEADERBOARD:START -->[\s\S]*<!-- LEADERBOARD:END -->/, () => block) : t.replace("## Leaderboard", () => `## Leaderboard\n\n${block}`);
   writeFileSync(README, t);
-  console.log("README bijgewerkt");
+  console.log("README updated");
 }
 
 const [cmd, model, ...rest] = process.argv.slice(2);
 const boards = Math.min(SEEDS.length, Number(rest[rest.indexOf("--boards") + 1]) || 5);
 if (cmd === "bots") {
-  await bench("Willekeurig", (s) => playBot(botRandom, s), SEEDS.length);
-  await bench("Kansdichtheid-bot", (s) => playBot(botProb, s), SEEDS.length);
+  await bench("Random bot", (s) => playBot(botRandom, s), SEEDS.length);
+  await bench("Probability bot", (s) => playBot(botProb, s), SEEDS.length);
   readme();
 } else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards); readme(); }
 else if (cmd === "readme") readme();
-else console.log("gebruik: node bench.mjs bots | run <provider/model> [--boards N] | readme");
+else console.log("usage: node bench.mjs bots | run <provider/model> [--boards N] | readme");

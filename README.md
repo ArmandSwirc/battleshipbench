@@ -12,16 +12,16 @@
 ## Leaderboard
 
 <!-- LEADERBOARD:START -->
-### Gauntlet (solo, vaste borden, 0-100)
+### 🎯 Gauntlet (solo, fixed boards, 0-100)
 
-| # | Model | Score | Gem. schoten | Borden | Auto-zetten |
+| # | Model | Score | Avg shots | Boards | Auto-moves |
 |--:|---|--:|--:|--:|--:|
-| 1 | 🤖 Kansdichtheid-bot | **60.1** | 50.1 | 10 | 0 |
-| 2 | 🤖 Willekeurig | **4.8** | 96 | 10 | 0 |
+| 1 | 🤖 Probability bot | **60.1** | 50.1 | 10 | 0 |
+| 2 | 🤖 Random bot | **4.8** | 96 | 10 | 0 |
 
-### Arena (model tegen model, Elo)
+### ⚔️ Arena (head-to-head, Elo)
 
-_Nog geen partijen gespeeld._
+_No games played yet._
 <!-- LEADERBOARD:END -->
 
 ## How the scores work
