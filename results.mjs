@@ -45,26 +45,55 @@ export function renderOverview(run) {
     const row = boards.slice(i, i + 2).map((b, k) => card(b, 20 + k * (CW + 16), y)), h = Math.max(...row.map((c) => c.h));
     row.forEach((c) => (body += c.g)); y += h + 16;
   }
-  const tot = boards.reduce((a, b) => a + (b.finished ? b.sequence.length : 100), 0), W = 40 + 2 * CW + 16;
-  const head = `<text class="h" x="20" y="38">${esc(run.model.replace(/^[^/]+\//, ""))}</text><text x="20" y="58">${boards.length} ${run.kind === "arena" ? "arena games" : "boards"} · avg ${Math.round((tot / boards.length) * 10) / 10} shots · numbers show the order of the shots, red = hit</text>`;
+  const tot = boards.reduce((a, b) => a + (b.finished || run.kind === "arena" ? b.sequence.length : 100), 0), W = 40 + 2 * CW + 16;
+  const head = `<text class="h" x="20" y="38">${esc(run.kind === "arena" ? run.model : run.model.replace(/^[^/]+\//, ""))}</text><text x="20" y="58">${run.kind === "arena" ? boards.length / 2 + " arena games" : boards.length + " boards"} · avg ${Math.round((tot / boards.length) * 10) / 10} shots · numbers show the order of the shots, red = hit</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${y}" width="${W}" height="${y}"><style>${STYLE}</style><rect width="${W}" height="${y}" fill="var(--page)"/>${head}${body}</svg>\n`;
 }
 
-// board = { id?, label?,  model, seed, ships:[{name,len,cells}], shots:[{cell,result}], finished, fallbacks, startedAt }
-export function saveBoard(board, kind = "gauntlet") {
-  const arena = kind === "arena", id = board.id ?? board.seed;
+// board = { seed, model, ships:[{name,len,cells}], shots:[{cell,result}], finished, fallbacks, startedAt }
+export function saveBoard(board) {
   const dir = DIR + slug(board.model) + "/"; mkdirSync(dir, { recursive: true });
-  const f = dir + (arena ? "arena.json" : "run.json"), run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: board.model, kind, startedAt: board.startedAt, boards: [] };
-  const rec = { id, seed: board.seed, label: board.label, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
-  const i = run.boards.findIndex((b) => (b.id ?? b.seed) === id);
+  const f = dir + "run.json", run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: board.model, kind: "gauntlet", startedAt: board.startedAt, boards: [] };
+  const rec = { seed: board.seed, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
+  const i = run.boards.findIndex((b) => b.seed === board.seed);
   if (i >= 0) run.boards[i] = rec; else run.boards.push(rec);
   writeFileSync(f, JSON.stringify(run, null, 1));
-  writeFileSync(dir + (arena ? "arena.svg" : "overview.svg"), renderOverview(run));
+  writeFileSync(dir + "overview.svg", renderOverview(run));
+}
+
+// 1v1 game -> results/arena/<model A>_vs_<model B>/ { run.json, overview.svg, games.md }, same files as a bench run plus strategy and reasoning per shot.
+// game = { ts, mode, winner:"A"|"B", a, b } with a/b = { model, strategyName, strategy, placement, ownPlacement, fallbacks, hits, foeFleet, moves:[{cell,result,why,fallback}] }
+const short = (m) => String(m).replace(/^.*\//, "").replace(/-GGUF:.*/, "");
+const cellMd = (s) => String(s ?? "").replace(/\|/g, "\\|").replace(/\s*\n\s*/g, " ").trim();
+const quote = (t) => String(t).trim().split("\n").map((l) => "> " + l).join("\n");
+function gameMd(g) {
+  let md = `## ${g.ts} · ${g.mode === "free" ? "free play" : "standard"} · ${short(g[g.winner.toLowerCase()].model)} won in ${g[g.winner.toLowerCase()].moves.length} shots\n\n`;
+  for (const k of ["a", "b"]) {
+    const x = g[k], won = g.winner === k.toUpperCase();
+    md += `### ${short(x.model)} (${k.toUpperCase()}) · ${won ? "won" : "lost"} · ${x.moves.length} shots · ${x.hits} hits${x.fallbacks ? ` · ${x.fallbacks} auto-moves` : ""}\n\n`;
+    md += x.strategy ? `**Strategy${x.strategyName ? `: ${x.strategyName}` : ""}**\n\n${quote(x.strategy)}\n\n` : "_No own strategy (standard mode)._\n\n";
+    md += `**Fleet placement:** ${x.ownPlacement ? "own placement" : "random"}${x.placement ? `\n\n${quote(x.placement)}` : ""}\n\n`;
+    md += "| # | Cell | Result | Reasoning |\n|---|---|---|---|\n" + x.moves.map((m, i) => `| ${i + 1} | ${m.cell} | ${m.result}${m.fallback ? " (auto-move)" : ""} | ${cellMd(m.why)} |`).join("\n") + "\n\n";
+  }
+  return md;
+}
+export function saveArena(game) {
+  const names = [game.a.model, game.b.model].sort(), pair = names.map(slug).join("_vs_");
+  const dir = DIR + "arena/" + pair + "/"; mkdirSync(dir, { recursive: true });
+  const f = dir + "run.json", run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: names.map(short).join(" vs "), kind: "arena", models: names, games: [] };
+  run.games = run.games.filter((g) => g.ts !== game.ts).concat(game);
+  const boards = run.games.flatMap((g) => ["a", "b"].map((k) => { // board of side k = the fleet it shot at, with its shots numbered
+    const x = g[k];
+    return { id: `${g.ts}-${k}`, label: `${short(x.model)} · ${g.winner === k.toUpperCase() ? "won" : "lost"}`, ships: x.foeFleet, sequence: x.moves.map((m, i) => ({ n: i + 1, cell: m.cell, result: m.result })), finished: g.winner === k.toUpperCase() };
+  }));
+  writeFileSync(f, JSON.stringify(run, null, 1));
+  writeFileSync(dir + "overview.svg", renderOverview({ ...run, boards }));
+  writeFileSync(dir + "games.md", `# ${run.model}\n\n${run.games.length} game${run.games.length === 1 ? "" : "s"}, newest first. Board images: [overview.svg](overview.svg), raw data: [run.json](run.json).\n\n` + [...run.games].reverse().map(gameMd).join("\n---\n\n"));
 }
 
 export function publish(msg = "results: saved boards and runs") {
   const git = (...a) => execFileSync("git", a, { cwd: ROOT, stdio: "pipe" }).toString();
-  const paths = ["results", "bench.jsonl", "shots.jsonl", "README.md"].filter((p) => existsSync(ROOT + p));
+  const paths = ["results", "assets", "bench.jsonl", "shots.jsonl", "README.md"].filter((p) => existsSync(ROOT + p));
   git("add", ...paths);
   if (!git("status", "--porcelain", "--", ...paths).trim()) return "nothing to publish";
   git("commit", "-m", msg, "--", ...paths); git("push");

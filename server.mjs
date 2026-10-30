@@ -2,10 +2,10 @@
 // chatverzoeken door naar de lokale Splash-gateway of naar een provider (OpenAI-compatibel).
 // Start: node server.mjs   ->  http://127.0.0.1:8791/
 import { createServer } from "node:http";
-import { spawn } from "node:child_process";
+import { spawn, execFileSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, chmodSync, appendFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { saveBoard, publish } from "./results.mjs";
+import { saveArena, publish } from "./results.mjs";
 
 const PORT = Number(process.env.PORT ?? 8791);
 const GATEWAY = (process.env.QWEN_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
@@ -139,7 +139,7 @@ function scoreboard(matches) {
   }
   return [...M.values()].map((r) => ({ ...r, elo: Math.round(elo.get(r.model) ?? 1000), winRate: r.wins / r.games, accuracy: r.shots ? r.hits / r.shots : 0, avgShotsToWin: r.wins ? r.winShots / r.wins : null })).sort((a, b) => b.elo - a.elo);
 }
-const side = (x) => ({ model: String(x?.model ?? ""), shots: Number(x?.shots) || 0, hits: Number(x?.hits) || 0, fallbacks: Number(x?.fallbacks) || 0, ownPlacement: !!x?.ownPlacement });
+const side = (x) => ({ model: String(x?.model ?? ""), shots: Number(x?.shots) || 0, hits: Number(x?.hits) || 0, fallbacks: Number(x?.fallbacks) || 0, ownPlacement: !!x?.ownPlacement, placement: String(x?.placement ?? "").slice(0, 2000), ...(x?.strategy ? { strategyName: String(x.strategyName ?? "").slice(0, 60), strategy: String(x.strategy).slice(0, 20000) } : {}) });
 const firstJSON = (t) => { const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a < 0 || b < a) return null; try { return JSON.parse(t.slice(a, b + 1)); } catch { return null; } };
 
 async function handle(req, res) {
@@ -151,15 +151,15 @@ async function handle(req, res) {
   if (req.method === "POST" && path === "/api/matches") {
     const b = await readBody(req), a = side(b.a), c = side(b.b);
     if (!a.model || !c.model || (b.winner !== "A" && b.winner !== "B")) return json(res, 400, { error: "a.model, b.model en winner (A|B) zijn verplicht" });
-    const rec = { ts: new Date().toISOString(), a, b: c, winner: b.winner };
+    const rec = { ts: new Date().toISOString(), mode: b.mode === "free" ? "free" : "bench", a, b: c, winner: b.winner };
     appendFileSync(MATCHES, JSON.stringify(rec) + "\n");
-    try { // board image per side in results/<model>/arena.svg, then push
-      for (const [k, me, foe] of [["A", b.a, b.b], ["B", b.b, b.a]]) {
-        if (!Array.isArray(me?.moves) || !Array.isArray(me?.foeFleet)) continue;
-        const won = b.winner === k, shortName = String(foe.model).replace(/^[^/]+\//, "");
-        saveBoard({ model: me.model, id: `${rec.ts}-${k}`, label: `vs ${shortName} · ${won ? "won" : "lost"}`, ships: me.foeFleet, shots: me.moves, finished: won, fallbacks: me.fallbacks, startedAt: rec.ts }, "arena");
+    try { // strategy, shots and board images per pairing in results/arena/<A>_vs_<B>/, then push
+      const full = (x) => ({ ...side(x), hits: Number(x?.hits) || 0, foeFleet: x?.foeFleet, moves: (x?.moves ?? []).map((m) => ({ cell: String(m.cell), result: String(m.result), ...(m.why ? { why: String(m.why).slice(0, 500) } : {}), ...(m.fallback ? { fallback: true } : {}) })) });
+      if (Array.isArray(b.a?.moves) && Array.isArray(b.a?.foeFleet) && Array.isArray(b.b?.moves) && Array.isArray(b.b?.foeFleet)) {
+        saveArena({ ts: rec.ts, mode: rec.mode, winner: b.winner, a: full(b.a), b: full(b.b) });
+        try { execFileSync(process.execPath, ["bench.mjs", "readme"], { cwd: fileURLToPath(new URL(".", import.meta.url)), stdio: "pipe" }); } catch (e) { console.error("readme:", e.message.split("\n")[0]); } // leaderboard graphics + tables
+        try { publish(`results: arena ${rec.a.model} vs ${rec.b.model}`); } catch {}
       }
-      try { publish(`results: arena ${rec.a.model} vs ${rec.b.model}`); } catch {}
     } catch (e) { console.error("results:", e.message); }
     return json(res, 200, rec);
   }
@@ -247,6 +247,7 @@ async function handle(req, res) {
 
   if (req.method === "POST" && path === "/api/chat") {
     const body = await readBody(req);
+    const unlimited = body.think_budget === 0; // 1v1 Vrij spel: geen denkbudget, geen lusbewaking, geen max_tokens
     const budget = Math.min(THINK_BUDGET * 2, Math.max(200, Number(body.think_budget) || THINK_BUDGET)); delete body.think_budget; // de bench mag strenger dan de standaard
     const ref = String(body.model ?? ""), i = ref.indexOf("/");
     const pid = ref.slice(0, i);
@@ -255,7 +256,7 @@ async function handle(req, res) {
     if (pid === "local") {
       target = `${GATEWAY}/v1/chat/completions`;
       headers["x-qwen-client"] = "battleship";
-      body.max_tokens = 8192 + 1024; // 8K denken + ruimte voor het JSON-antwoord
+      if (!unlimited) body.max_tokens = 8192 + 1024; // 8K denken + ruimte voor het JSON-antwoord
     } else {
       const p = load().find((x) => x.id === pid);
       if (!p) return json(res, 400, { error: { message: `provider '${pid}' onbekend` } });
@@ -263,6 +264,7 @@ async function handle(req, res) {
       target = `${baseOf(p)}/${anth ? "messages" : "chat/completions"}`;
       Object.assign(headers, authHeaders(p));
       delete body.chat_template_kwargs; // alleen Splash kent deze parameter
+      if (unlimited && anth) body.max_tokens = 32000; // Anthropic eist een waarde: zo ruim mogelijk
     }
     body.model = ref.slice(i + 1);
     const payload = (b) => JSON.stringify(anth ? toAnthropic(b) : b);
@@ -272,7 +274,7 @@ async function handle(req, res) {
     try {
       const up = wrap(await fetch(target, { method: "POST", headers, body: payload(body), signal: ctl.signal }));
       res.writeHead(up.status, { "content-type": up.headers.get("content-type") ?? "application/json", "cache-control": "no-store" });
-      const st = newState(true, budget); let st2 = null;
+      const st = newState(!unlimited, budget); let st2 = null;
       if ((body.stream || anth) && up.ok) await relay(up, res, st);
       else for await (const c of up.body) res.write(c);
       if (st.why && !gone) {

@@ -3,9 +3,10 @@
 //   node bench.mjs bots                         bots meten en opslaan
 //   node bench.mjs run anthropic/claude-haiku-5-5 [--boards 5]   (server.mjs moet draaien; sleutels blijven daar)
 //   node bench.mjs readme                       leaderboard in README.md bijwerken
-import { readFileSync, writeFileSync, appendFileSync, existsSync, renameSync } from "node:fs";
+import { readFileSync, writeFileSync, appendFileSync, existsSync, renameSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { saveBoard, publish } from "./results.mjs";
+import { saveBoard, publish, slug } from "./results.mjs";
+import { gauntletSvg, arenaSvg, label } from "./charts.mjs";
 
 const SIZE = 10, FLEET = [["Carrier", 5], ["Battleship", 4], ["Cruiser", 3], ["Submarine", 3], ["Destroyer", 2]];
 const MAX_SHOTS = 100, MIN_SHOTS = 17, SEEDS = [11, 23, 37, 41, 59, 61, 73, 89, 97, 101], GAUNTLET = 3; // Gauntlet = de eerste 3 borden
@@ -259,19 +260,33 @@ function readme() {
     const o = best.get(r.name); if (!o || r.ts > o.ts) best.set(r.name, r);
   }
   const g = [...best.values()].sort((a, b) => b.score - a.score);
-  const gauntlet = ["| # | Model | Score | Avg shots | Boards | Auto-moves |", "|--:|---|--:|--:|--:|--:|",
-    ...g.map((r, i) => `| ${i + 1} | ${r.bot ? "🤖 " : ""}${r.name.replace(/^[^/]+\//, "")} | **${r.score}** | ${r.avgShots} | ${r.boards} | ${r.fallbacks} |`)].join("\n");
-  const M = new Map(), elo = new Map();
-  for (const m of readJsonl(MATCHES)) {
+  const ROOT = fileURLToPath(new URL("./", import.meta.url)), replay = (n) => (existsSync(`${ROOT}results/${slug(n)}/overview.svg`) ? `[boards](results/${slug(n)}/overview.svg)` : "");
+  writeFileSync(ROOT + "assets/leaderboard-gauntlet.svg", gauntletSvg(g));
+  const gauntlet = ["| # | Model | Score | Avg shots | Boards | Auto-moves | Replay |", "|--:|---|--:|--:|--:|--:|---|",
+    ...g.map((r, i) => `| ${i + 1} | ${r.bot ? "🤖 " : ""}${r.name.replace(/^[^/]+\//, "")} | **${r.score}** | ${r.avgShots} | ${r.boards} | ${r.fallbacks} | ${replay(r.name)} |`)].join("\n");
+  // Arena: matches.jsonl plus the games saved in results/arena/*/run.json (deduplicated on timestamp)
+  const games = new Map(readJsonl(MATCHES).map((m) => [m.ts, m])), pairs = [], AD = ROOT + "results/arena/";
+  for (const d of existsSync(AD) ? readdirSync(AD) : []) {
+    try {
+      const run = JSON.parse(readFileSync(`${AD}${d}/run.json`, "utf8"));
+      pairs.push({ dir: d, run });
+      for (const x of run.games) if (!games.has(x.ts)) games.set(x.ts, { ts: x.ts, a: { model: x.a.model, shots: x.a.moves.length, hits: x.a.hits }, b: { model: x.b.model, shots: x.b.moves.length, hits: x.b.hits }, winner: x.winner });
+    } catch {}
+  }
+  const M = new Map(), elo = new Map(), h2h = new Map();
+  for (const m of [...games.values()].sort((a, b) => a.ts.localeCompare(b.ts))) {
     const w = m.winner === "A" ? m.a : m.b, l = m.winner === "A" ? m.b : m.a;
-    for (const x of [m.a, m.b]) M.set(x.model, M.get(x.model) ?? { g: 0, w: 0 });
-    M.get(w.model).w++; M.get(m.a.model).g++; M.get(m.b.model).g++;
+    for (const x of [m.a, m.b]) { const r = M.get(x.model) ?? { g: 0, w: 0, shots: 0, hits: 0, winShots: 0 }; r.g++; r.shots += x.shots ?? 0; r.hits += x.hits ?? 0; M.set(x.model, r); }
+    M.get(w.model).w++; M.get(w.model).winShots += w.shots ?? 0;
+    h2h.set(`${w.model}|${l.model}`, (h2h.get(`${w.model}|${l.model}`) ?? 0) + 1);
     const ew = elo.get(w.model) ?? 1000, el = elo.get(l.model) ?? 1000, e = 1 / (1 + 10 ** ((el - ew) / 400));
     elo.set(w.model, ew + 32 * (1 - e)); elo.set(l.model, el - 32 * (1 - e));
   }
-  const arena = [...M].map(([k, v]) => ({ k, ...v, elo: Math.round(elo.get(k) ?? 1000) })).sort((a, b) => b.elo - a.elo);
-  const arenaT = arena.length ? ["| # | Model | Elo | Wins | Games |", "|--:|---|--:|--:|--:|", ...arena.map((r, i) => `| ${i + 1} | ${r.k.replace(/^[^/]+\//, "")} | **${r.elo}** | ${r.w} | ${r.g} |`)].join("\n") : "_No games played yet._";
-  const block = `<!-- LEADERBOARD:START -->\n### 🎯 Gauntlet (solo, fixed boards, 0-100)\n\n${gauntlet}\n\n### ⚔️ Arena (head-to-head, Elo)\n\n${arenaT}\n<!-- LEADERBOARD:END -->`;
+  const arena = [...M].map(([k, v]) => ({ model: k, wins: v.w, games: v.g, winRate: v.w / v.g, avgShotsToWin: v.w ? v.winShots / v.w : null, accuracy: v.shots ? v.hits / v.shots : 0, elo: Math.round(elo.get(k) ?? 1000) })).sort((a, b) => b.elo - a.elo);
+  writeFileSync(ROOT + "assets/leaderboard-arena.svg", arenaSvg(arena, h2h));
+  const arenaT = arena.length ? ["| # | Model | Elo | Wins | Games |", "|--:|---|--:|--:|--:|", ...arena.map((r, i) => `| ${i + 1} | ${label(r.model)} | **${r.elo}** | ${r.wins} | ${r.games} |`)].join("\n") : "_No games played yet._";
+  const replays = pairs.length ? "\n\n**Game replays** (strategy, reasoning and every shot per game):\n\n| Match-up | Games | Replay |\n|---|--:|---|\n" + pairs.map(({ dir, run }) => `| ${run.model} | ${run.games.length} | [strategy & shots](results/arena/${dir}/games.md) · [boards](results/arena/${dir}/overview.svg) |`).join("\n") : "";
+  const block = `<!-- LEADERBOARD:START -->\n### 🎯 Gauntlet (solo, fixed boards, 0-100)\n\n<p align="center"><img src="assets/leaderboard-gauntlet.svg" alt="Gauntlet leaderboard" width="100%"></p>\n\n<details><summary>Table</summary>\n\n${gauntlet}\n\n</details>\n\n### ⚔️ Arena (head-to-head, Elo)\n\n<p align="center"><img src="assets/leaderboard-arena.svg" alt="Arena leaderboard" width="100%"></p>\n\n<details><summary>Table</summary>\n\n${arenaT}${replays}\n\n</details>\n<!-- LEADERBOARD:END -->`;
   let t = readFileSync(README, "utf8");
   t = /<!-- LEADERBOARD:START -->[\s\S]*<!-- LEADERBOARD:END -->/.test(t) ? t.replace(/<!-- LEADERBOARD:START -->[\s\S]*<!-- LEADERBOARD:END -->/, () => block) : t.replace("## Leaderboard", () => `## Leaderboard\n\n${block}`);
   writeFileSync(README, t);
