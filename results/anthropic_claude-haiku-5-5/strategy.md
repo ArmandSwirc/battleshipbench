@@ -145,3 +145,57 @@
 | 46 | I7 | hit | Only the Destroyer (length 2) remains, and I7 has four unknown orthogonal neighbours, so it lies in more possible destroyer placements than most other cells. |
 | 47 | I6 | sunk Destroyer | The destroyer must cover I7 with one orthogonal neighbour, and I6 is an unknown neighbour of the open hit. |
 
+## Board 37 · 49 shots
+
+| # | Cell | Result | Reasoning |
+|---|---|---|---|
+| 1 | E5 | hit | Opens the search on a parity-0 cell near the centre, which lies on the most possible ship placements. |
+| 2 | F5 | miss | Follow up the unsunk hit at E5 by testing an orthogonal neighbor to establish the ship's orientation. |
+| 3 | E6 | miss | E5 is an unsunk hit and F5 is a miss, so I test the vertical neighbour E6 to find the ship's orientation. |
+| 4 | E4 | hit | E5 is an unsunk hit with misses at F5 and E6, so the ship must run horizontally through D5 or vertically through E4; testing E4 checks the vertical option. |
+| 5 | E3 | sunk Cruiser | E4 and E5 form a vertical pair with E6 and F5 missed, so E3 tests whether the ship extends upward while staying on a parity-0 cell. |
+| 6 | G3 | miss | Parity-0 cell with long open runs in both row 3 (F3-J3) and the fully open column G, so it can hold several remaining ships. |
+| 7 | G7 | miss | G7 is a parity-0 cell with long open runs both across row 7 (10 cells) and down column G (G4-G10), so it lies on many remaining placements. |
+| 8 | D6 | miss | D6 is a parity-0 cell on the fully open column D (10 cells) and the open row-6 run A6-D6, so it lies on many remaining placements. |
+| 9 | H6 | miss | H6 is a parity-0 cell on the fully open column H and the open row-6 run F6-J6, so it lies on many remaining placements. |
+| 10 | F8 | miss | F8 is a parity-0 cell on the fully open row 8 and the open column F run F6-F10, so it lies on many remaining placements. |
+| 11 | H4 | miss | H4 is a parity-0 cell on open row 4 (F4-J4) and open column H (H1-H5), so it lies on many remaining placements for the larger ships. |
+| 12 | C7 | miss | Parity-0 cell on the fully open column C and the long open row-7 run A7-F7, so it lies on many remaining placements. |
+| 13 | B8 | miss | B8 is a parity-0 cell on the fully open column B and the open row-8 run A8-E8, so it lies on many remaining placements. |
+| 14 | I5 | miss | I5 is a parity-0 cell on the fully open column I and the open row-5 run G5-J5, so it can hold several remaining ships. |
+| 15 | D4 | miss | D4 is a parity-0 cell on the open column D run D1-D5 and the open row-4 run A4-D4, so it can hold several remaining ships. |
+| 16 | B2 | hit | B2 is a parity-0 cell on the open row 2 and the long open column B run (B1-B7), so it lies on many remaining placements for the larger ships. |
+| 17 | B3 | miss | B2 is an unresolved hit, so I test its orthogonal neighbour B3 to establish whether the ship runs vertically down column B. |
+| 18 | C2 | hit | B3 was a miss, so the B2 hit must lie horizontally in row 2 or be part of a B1-B2 destroyer; C2 tests the horizontal option toward the open side of the board. |
+| 19 | D2 | hit | B2 and C2 are an unsunk horizontal pair, so extending the line to D2 tests the most likely continuation of that ship. |
+| 20 | E2 | hit | B2, C2 and D2 form an unsunk horizontal line, so extending it to E2 tests the open side with the most room for a 3-5 cell ship. |
+| 21 | F2 | miss | B2-E2 is an unsunk horizontal line, and F2 is the open end that can extend it toward a 4- or 5-cell ship. |
+| 22 | A2 | sunk Carrier | B2-E2 is an unsunk horizontal line blocked at F2, so A2 is the only remaining extension and would confirm a 5-cell Carrier or leave the Battleship as B2-E2. |
+| 23 | H8 | miss | H8 is a parity-0 cell on the open column H run H7-H10 and the open row-8 run G8-J8, so it lies in many remaining placements for the 4, 3, 3 and 2 ships. |
+| 24 | E9 | miss | E9 is a parity-0 cell on the fully open row 9 and the open column E run E7-E10, so it can hold the battleship or submarine. |
+| 25 | J2 | hit | J2 is a parity-0 cell on the fully open column J and the open row-2 run G2-J2, so it can hold several remaining ships. |
+| 26 | I2 | miss | J2 is an unresolved hit; I2 is its horizontal neighbour, and firing there tests the row-2 orientation (G2-J2 is the only open horizontal run) while also being a cheap check against vertical placements. |
+| 27 | J3 | sunk Destroyer | J2 is an unresolved hit with I2 missed, so the ship must run vertically in column J; J3 tests the downward direction and splits the candidate placements. |
+| 28 | J6 | miss | J6 is a parity-0 cell on the long open column J run (J4-J10) and lies in about six possible placements for the Battleship and Submarine. |
+| 29 | D10 | miss | D10 sits on the fully open row 10 and the open column D run D7-D10, so it lies on many placements for the remaining Battleship and Submarine. |
+| 30 | A5 | hit | A5 is a parity-0 cell on the long open column A run (A3-A10) and the open row-5 run A5-D5, so it lies in the most remaining Battleship and Submarine placements. |
+| 31 | A6 | hit | A5 is an unresolved hit, and A6 tests the vertical orientation in column A, which holds most of the remaining placements for the Battleship and Submarine. |
+| 32 | A7 | miss | A5 and A6 are unsunk hits that most likely form a vertical ship in column A, so A7 tests the downward extension and leaves the 4- and 3-cell placements to be resolved. |
+| 33 | A4 | hit | A5 and A6 form an unsunk vertical pair with A7 missed and A2 taken by the Carrier, so the ship must extend up through A4 whether it is the Battleship or Submarine. |
+| 34 | A3 | sunk Battleship | A4-A6 is an unsunk vertical hit line blocked at A7, so the ship is either A3-A6 (Battleship) or A4-A6 (Submarine); A3 resolves which and sinks it either way. |
+| 35 | I9 | miss | I9 is a parity-0 cell lying in about four remaining 3-cell placements (row 9 G-I and H-J, column I I7-I9 and I8-I10), the most of any parity-0 cell. |
+| 36 | G10 | miss | G10 lies in the most remaining 3-cell submarine placements (row 10 E-G, F-H, G-I and column G G8-G10), so it is the highest-information shot. |
+| 37 | H1 | miss | H1 lies in the most remaining 3-cell submarine placements (4 of the 29 open ones), so it is the highest-information shot. |
+| 38 | C9 | miss | C9 lies in the most remaining submarine placements (3 of about 25), so it gives the most information for one shot. |
+| 39 | C5 | miss | Only 22 submarine placements remain, and C5 lies in the most of them (3), so it gives the best chance of a hit. |
+| 40 | D1 | miss | D1 lies in three of the remaining submarine placements, the most of any unknown cell, so it gives the best chance of a hit. |
+| 41 | D8 | miss | Only 16 three-cell submarine placements remain, and D8 lies in two of them (C8-E8 and D7-D9), tied for the most of any unknown cell. |
+| 42 | B6 | miss | B6 lies in two of the 14 remaining submarine placements (B4-B6 and B5-B7), tied for the highest count of any unknown cell. |
+| 43 | I7 | miss | I7 lies in two of the 12 remaining submarine placements (I6-I8 and H7-J7), tied for the highest count, and it splits the candidates across different areas. |
+| 44 | J9 | miss | J9 lies in two of the nine remaining submarine placements (J7-J9 and J8-J10), tied for the highest count of any unknown cell. |
+| 45 | A10 | miss | Only 8 submarine placements remain, and A10 lies in two of them (A10-C10 and A8-A10), more than any other unknown cell. |
+| 46 | G5 | miss | Only six 3-cell submarine placements remain, each unknown cell lies in exactly one, and G5 sits in the vertical G4-G6 run, so this shot is as informative as any other. |
+| 47 | F9 | hit | Only five 3-cell submarine placements remain (A1-C1, E1-G1, D7-F7, F9-H9, H10-J10), each cell belongs to exactly one, so any shot is equally informative; F9 sits in F9-H9. |
+| 48 | G9 | hit | F9 is the only hit left, and the only possible submarine placement through it is F9-G9-H9, so G9 is a sure-fire next shot. |
+| 49 | H9 | sunk Submarine | The submarine is the only ship left, and with E9 already missed, the only 3-cell placement through the F9 and G9 hits is F9-G9-H9. |
+
