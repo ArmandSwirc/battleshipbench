@@ -17,8 +17,8 @@ h2{margin:0 0 10px;font:600 12px var(--mono);letter-spacing:.08em;text-transform
 .grid{display:grid;grid-template-columns:22px repeat(10,1fr);gap:3px}
 .grid i{font:12px var(--mono);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-style:normal}
 .c{aspect-ratio:1;border-radius:2px;background:var(--water);display:flex;align-items:center;justify-content:center;font:600 12px var(--mono)}
-.c{position:relative;color:var(--ink-3)}.c.sh{background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 70%,transparent)}.c.sh::before{content:attr(data-l);position:absolute;font:600 12px var(--mono);color:var(--sc);opacity:.9}.c.sh.o::before{display:none}.c.X{box-shadow:inset 0 0 0 2px var(--sc)}.c.sunk{background:color-mix(in srgb,var(--sc) 55%,#000)}.c.o::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
-.c.X{background:var(--bad);color:#fff}.c.X::after{content:"✕"}.c.X::before{display:none}
+.c{position:relative;color:var(--ink-3)}.c.sh{background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 70%,transparent)}.c.sh[data-l]::before{content:attr(data-l);position:absolute;left:0;top:0;z-index:2;display:flex;align-items:center;justify-content:center;width:calc(var(--n)*100% + (var(--n) - 1)*3px);height:100%;font:600 12px var(--mono);letter-spacing:.02em;color:color-mix(in srgb,var(--sc) 55%,var(--ink));text-shadow:0 0 3px var(--water);pointer-events:none}.c.sh[data-l][data-v]::before{width:100%;height:calc(var(--n)*100% + (var(--n) - 1)*3px);writing-mode:vertical-rl;text-orientation:mixed}.c.sunk[data-l]::before{color:#fff;text-shadow:none}.c.X{box-shadow:inset 0 0 0 2px var(--sc)}.c.sunk{background:color-mix(in srgb,var(--sc) 55%,#000)}.c.o::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.c.X{background:var(--bad);color:#fff}.c.X::after{content:"✕";position:absolute;top:2px;right:4px;font-size:11px;line-height:1}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
 .stat b{display:block;font:600 24px var(--mono);letter-spacing:-.02em}.stat span{font:12px var(--mono);color:var(--ink-3);text-transform:uppercase}
 .bar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;margin:6px 0 14px}.bar div{height:100%;background:var(--b);width:0;transition:width .4s}
@@ -70,7 +70,9 @@ async function tick(){
  for(let r=0;r<10;r++)for(let c=0;c<10;c++){const i=s.shipGrid[r][c];if(i>=0&&s.cells[r][c]==="X")hitsOf[i]++}
  for(let r=0;r<10;r++)for(let c=0;c<10;c++){const e=$(`#c${r}_${c}`),v=s.cells[r][c],i=s.shipGrid[r][c];
   e.className="c"+(i>=0?" sh":"")+(v?" "+v:"")+(i>=0&&hitsOf[i]===s.fleet[i].len?" sunk":"");
-  if(i>=0){e.style.setProperty("--sc",COL[s.fleet[i].name]);e.dataset.l=s.fleet[i].name[0]}else{e.style.removeProperty("--sc");delete e.dataset.l}}
+  if(i>=0){e.style.setProperty("--sc",COL[s.fleet[i].name])}else{e.style.removeProperty("--sc")}
+  delete e.dataset.l;delete e.dataset.v;e.style.removeProperty("--n");
+  if(i>=0&&(r===0||s.shipGrid[r-1][c]!==i)&&(c===0||s.shipGrid[r][c-1]!==i)){const v=r<9&&s.shipGrid[r+1][c]===i;e.dataset.l=s.fleet[i].name;e.style.setProperty("--n",s.fleet[i].len);if(v)e.dataset.v=""}}
  $("#fleet").innerHTML=s.fleet.map((f,i)=>`<div class="fl${hitsOf[i]===f.len?" dead":""}" style="--sc:${COL[f.name]}"><b>${f.name}</b><span class="sw">${Array.from({length:f.len},(_,k)=>`<i class="${k<hitsOf[i]?"x":""}"></i>`).join("")}</span><span>${hitsOf[i]===f.len?"sunk":hitsOf[i]+"/"+f.len}</span></div>`).join("")
  const n=s.shots.length,h=s.shots.filter(x=>x.result!=="miss").length;
  $("#n").textContent=n;$("#h").textContent=h;$("#acc").textContent=n?Math.round(100*h/n)+"%":"–";$("#fb").textContent=s.fallbacks??0;

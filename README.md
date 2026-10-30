@@ -46,7 +46,7 @@ All models play the same 10 boards, frozen in [`boards.json`](boards.json), so r
 
 1. **Realistic:** standard fleet (Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2); ships are straight and never overlap, may touch; mixed orientation (2–3 horizontal); at most 2 ships flush against the border.
 2. **Difficult:** for each board, 300 random legal fleets are generated and each is played 3× by the probability-density bot. The fleet that bot needs the most shots to find is kept. These fleets sit where density heuristics look last, so lucky center-hunting does not pay off.
-3. **Transparent:** regenerate with `node bench.mjs boards`. The live screen shows every ship by type (C/B/R/S/D) so you can follow how each model hunts.
+3. **Transparent:** regenerate with `node bench.mjs boards`. The live screen shows every ship by name so you can follow how each model hunts.
 
 Caveat: boards are tuned against the density bot, which makes the bot a *harsh* yardstick. Compare models to each other and to the bots on the same boards.
 
