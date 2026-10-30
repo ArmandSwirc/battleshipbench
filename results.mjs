@@ -21,7 +21,7 @@ const CS = 28, GX = 22, GY = 52, CW = 352, TOK = 56, LINE = 15;
 function card(b, x, y) {
   const own = new Map(); b.ships.forEach((s) => s.cells.forEach(([r, c]) => own.set(r * 10 + c, s.name)));
   const hits = b.sequence.filter((q) => q.result !== "miss").length;
-  let g = `<text class="t" x="${x + 16}" y="${y + 26}" style="font-size:13px">Board ${b.seed}</text><text x="${x + CW - 16}" y="${y + 26}" text-anchor="end">${b.sequence.length} shots · ${hits} hits${b.finished ? "" : " · not finished"}</text>`;
+  let g = `<text class="t" x="${x + 16}" y="${y + 26}" style="font-size:13px">${esc(b.label ?? "Board " + b.seed)}</text><text x="${x + CW - 16}" y="${y + 26}" text-anchor="end">${b.sequence.length} shots · ${hits} hits${b.finished ? "" : " · not finished"}</text>`;
   for (let i = 0; i < 10; i++) g += `<text x="${x + GX + 16 + i * CS + CS / 2}" y="${y + GY - 6}" text-anchor="middle" style="font-size:10px">${COLS[i]}</text><text x="${x + GX + 8}" y="${y + GY + 16 + i * CS + 4}" text-anchor="end" style="font-size:10px">${i + 1}</text>`;
   for (let r = 0; r < 10; r++) for (let c = 0; c < 10; c++) {
     const nm = own.get(r * 10 + c), px = x + GX + 16 + c * CS - 0, py = y + GY + r * CS;
@@ -39,26 +39,27 @@ function card(b, x, y) {
 }
 
 export function renderOverview(run) {
-  const boards = [...run.boards].sort((a, b) => a.seed - b.seed);
+  const boards = [...run.boards].sort((a, b) => (a.seed ?? 0) - (b.seed ?? 0) || String(a.id).localeCompare(String(b.id)));
   let y = 76, body = "";
   for (let i = 0; i < boards.length; i += 2) {
     const row = boards.slice(i, i + 2).map((b, k) => card(b, 20 + k * (CW + 16), y)), h = Math.max(...row.map((c) => c.h));
     row.forEach((c) => (body += c.g)); y += h + 16;
   }
   const tot = boards.reduce((a, b) => a + (b.finished ? b.sequence.length : 100), 0), W = 40 + 2 * CW + 16;
-  const head = `<text class="h" x="20" y="38">${esc(run.model.replace(/^[^/]+\//, ""))}</text><text x="20" y="58">${boards.length} boards · avg ${Math.round((tot / boards.length) * 10) / 10} shots · numbers show the order of the shots, red = hit</text>`;
+  const head = `<text class="h" x="20" y="38">${esc(run.model.replace(/^[^/]+\//, ""))}</text><text x="20" y="58">${boards.length} ${run.kind === "arena" ? "arena games" : "boards"} · avg ${Math.round((tot / boards.length) * 10) / 10} shots · numbers show the order of the shots, red = hit</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${y}" width="${W}" height="${y}"><style>${STYLE}</style><rect width="${W}" height="${y}" fill="var(--page)"/>${head}${body}</svg>\n`;
 }
 
-// board = { model, seed, ships:[{name,len,cells}], shots:[{cell,result}], finished, fallbacks, startedAt }
-export function saveBoard(board) {
+// board = { id?, label?,  model, seed, ships:[{name,len,cells}], shots:[{cell,result}], finished, fallbacks, startedAt }
+export function saveBoard(board, kind = "gauntlet") {
+  const arena = kind === "arena", id = board.id ?? board.seed;
   const dir = DIR + slug(board.model) + "/"; mkdirSync(dir, { recursive: true });
-  const f = dir + "run.json", run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: board.model, startedAt: board.startedAt, boards: [] };
-  const rec = { seed: board.seed, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
-  const i = run.boards.findIndex((b) => b.seed === board.seed);
+  const f = dir + (arena ? "arena.json" : "run.json"), run = existsSync(f) ? JSON.parse(readFileSync(f, "utf8")) : { model: board.model, kind, startedAt: board.startedAt, boards: [] };
+  const rec = { id, seed: board.seed, label: board.label, shots: board.shots.length, finished: board.finished, fallbacks: board.fallbacks ?? 0, ships: board.ships.map(({ name, len, cells }) => ({ name, len, cells })), sequence: board.shots.map((s, i) => ({ n: i + 1, cell: s.cell, result: s.result })) };
+  const i = run.boards.findIndex((b) => (b.id ?? b.seed) === id);
   if (i >= 0) run.boards[i] = rec; else run.boards.push(rec);
   writeFileSync(f, JSON.stringify(run, null, 1));
-  writeFileSync(dir + "overview.svg", renderOverview(run));
+  writeFileSync(dir + (arena ? "arena.svg" : "overview.svg"), renderOverview(run));
 }
 
 export function publish(msg = "results: saved boards and runs") {

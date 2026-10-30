@@ -2,8 +2,10 @@
 // chatverzoeken door naar de lokale Splash-gateway of naar een provider (OpenAI-compatibel).
 // Start: node server.mjs   ->  http://127.0.0.1:8791/
 import { createServer } from "node:http";
+import { spawn } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync, chmodSync, appendFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { saveBoard, publish } from "./results.mjs";
 
 const PORT = Number(process.env.PORT ?? 8791);
 const GATEWAY = (process.env.QWEN_URL ?? "http://127.0.0.1:8000").replace(/\/$/, "");
@@ -66,7 +68,7 @@ async function listModels(p) {
 // of herhaalt het zichzelf, dan breekt de proxy de call af en vraagt dezelfde vraag opnieuw zonder denken, met het
 // begin van de redenering erbij. De pagina ziet één doorlopende stream.
 const THINK_BUDGET = Number(process.env.THINK_BUDGET ?? 6000);
-const THINK_KEEP = 4000; // tekens redenering die meegaan naar de afgedwongen call
+const THINK_KEEP = 6000; // tekens redenering die meegaan naar de afgedwongen call
 const sse = (delta) => `data: ${JSON.stringify({ choices: [{ index: 0, delta }] })}\n\n`;
 const looping = (think) => {
   if (think.length < 2000) return false;
@@ -77,7 +79,7 @@ const looping = (think) => {
 };
 
 // SSE-verwerking per call: verzamelt denken en antwoord en bewaakt de denklengte (alleen met guard, zolang er geen antwoord is).
-const newState = (guard) => ({ dec: new TextDecoder(), buf: "", think: "", content: "", chunks: 0, guard, why: "" });
+const newState = (guard, budget = THINK_BUDGET) => ({ dec: new TextDecoder(), buf: "", think: "", content: "", chunks: 0, guard, budget, why: "" });
 function feed(st, chunk) {
   st.buf += st.dec.decode(chunk, { stream: true });
   let i;
@@ -91,7 +93,7 @@ function feed(st, chunk) {
     if (!rt) continue;
     st.think += rt; st.chunks++;
     if (!st.guard || st.content) continue;
-    st.why = st.chunks > THINK_BUDGET ? `budget van ${THINK_BUDGET} denk-tokens op` : st.chunks % 100 === 0 && looping(st.think) ? "herhaling in het denken" : "";
+    st.why = st.chunks > st.budget ? `budget van ${st.budget} denk-tokens op` : st.chunks % 100 === 0 && looping(st.think) ? "herhaling in het denken" : "";
     if (st.why) return true;
   }
   return false;
@@ -100,6 +102,12 @@ function feed(st, chunk) {
 async function relay(up, res, st) {
   for await (const chunk of up.src ?? up.body) { res.write(chunk); if (feed(st, chunk)) return; }
 }
+
+// Bench-slots (a | b): live-bestand per slot, bench.mjs draait als los proces en schrijft zijn pid mee.
+const slotOf = (req) => (new URL(req.url, "http://x").searchParams.get("slot") === "b" ? "b" : "a");
+const liveFile = (slot) => fileURLToPath(new URL(slot === "b" ? "./bench-live-b.json" : "./bench-live.json", import.meta.url));
+const readLive = (slot) => { try { return JSON.parse(readFileSync(liveFile(slot), "utf8")); } catch { return null; } };
+const alive = (pid) => { try { return !!pid && process.kill(pid, 0); } catch { return false; } };
 
 // Logboek per call (calls.jsonl): voor het vergelijken van modellen achteraf.
 const LOG = fileURLToPath(new URL("./calls.jsonl", import.meta.url));
@@ -140,14 +148,38 @@ async function handle(req, res) {
     if (!a.model || !c.model || (b.winner !== "A" && b.winner !== "B")) return json(res, 400, { error: "a.model, b.model en winner (A|B) zijn verplicht" });
     const rec = { ts: new Date().toISOString(), a, b: c, winner: b.winner };
     appendFileSync(MATCHES, JSON.stringify(rec) + "\n");
+    try { // board image per side in results/<model>/arena.svg, then push
+      for (const [k, me, foe] of [["A", b.a, b.b], ["B", b.b, b.a]]) {
+        if (!Array.isArray(me?.moves) || !Array.isArray(me?.foeFleet)) continue;
+        const won = b.winner === k, shortName = String(foe.model).replace(/^[^/]+\//, "");
+        saveBoard({ model: me.model, id: `${rec.ts}-${k}`, label: `vs ${shortName} · ${won ? "won" : "lost"}`, ships: me.foeFleet, shots: me.moves, finished: won, fallbacks: me.fallbacks, startedAt: rec.ts }, "arena");
+      }
+      try { publish(`results: arena ${rec.a.model} vs ${rec.b.model}`); } catch {}
+    } catch (e) { console.error("results:", e.message); }
     return json(res, 200, rec);
   }
   if (req.method === "GET" && path === "/api/scores") return json(res, 200, { scores: scoreboard(loadMatches()), matches: loadMatches().slice(-30).reverse() });
 
   if (req.method === "GET" && path === "/bench") return void res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" }).end(readFileSync(fileURLToPath(new URL("./bench.html", import.meta.url))));
   if (req.method === "GET" && path === "/api/bench/live") {
-    const f = fileURLToPath(new URL("./bench-live.json", import.meta.url));
-    return void res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(existsSync(f) ? readFileSync(f) : '{"status":"idle"}');
+    const live = readLive(slotOf(req));
+    return void res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" }).end(JSON.stringify(live ? { ...live, alive: alive(live.pid) } : { status: "idle", alive: false }));
+  }
+  if (req.method === "POST" && path === "/api/bench/stop") {
+    const slot = slotOf(req), live = readLive(slot);
+    if (live && alive(live.pid)) process.kill(live.pid, "SIGTERM");
+    else if (live && !["done", "stopped"].includes(live.status)) { live.status = "stopped"; writeFileSync(liveFile(slot), JSON.stringify(live)); }
+    return json(res, 200, { ok: true });
+  }
+  if (req.method === "POST" && path === "/api/bench/start") {
+    const slot = slotOf(req), body = await readBody(req), live = readLive(slot);
+    if (live && alive(live.pid)) return json(res, 409, { error: { message: `slot ${slot} draait al` } });
+    if (!/^[\w.\-]+\/\S+$/.test(String(body.model ?? ""))) return json(res, 400, { error: { message: "model ontbreekt" } });
+    const boards = Math.min(10, Math.max(1, Number(body.boards) || 5));
+    try { writeFileSync(liveFile(slot), JSON.stringify({ status: "starting", name: body.model, shots: [], results: [], think: "" })); } catch {}
+    const child = spawn(process.execPath, ["bench.mjs", "run", body.model, "--boards", String(boards), "--slot", slot], { cwd: fileURLToPath(new URL(".", import.meta.url)), detached: true, stdio: "ignore", env: { ...process.env, BENCH_SERVER: `http://127.0.0.1:${PORT}` } });
+    child.unref();
+    return json(res, 200, { started: child.pid });
   }
 
   if (req.method === "GET" && path === "/api/providers") return json(res, 200, load().map(pub));
@@ -198,6 +230,7 @@ async function handle(req, res) {
 
   if (req.method === "POST" && path === "/api/chat") {
     const body = await readBody(req);
+    const budget = Math.min(THINK_BUDGET * 2, Math.max(200, Number(body.think_budget) || THINK_BUDGET)); delete body.think_budget; // de bench mag strenger dan de standaard
     const ref = String(body.model ?? ""), i = ref.indexOf("/");
     const pid = ref.slice(0, i);
     let target, anth = false;
@@ -222,17 +255,18 @@ async function handle(req, res) {
     try {
       const up = wrap(await fetch(target, { method: "POST", headers, body: payload(body), signal: ctl.signal }));
       res.writeHead(up.status, { "content-type": up.headers.get("content-type") ?? "application/json", "cache-control": "no-store" });
-      const st = newState(true); let st2 = null;
+      const st = newState(true, budget); let st2 = null;
       if ((body.stream || anth) && up.ok) await relay(up, res, st);
       else for await (const c of up.body) res.write(c);
       if (st.why && !gone) {
         // tweede call: zelfde vraag, denken uit, met het begin van de redenering als kladblok
         const msgs = body.messages.map((m) => ({ ...m }));
         const last = msgs[msgs.length - 1];
-        last.content += `\n\nYOUR THINKING SO FAR (cut off: ${st.why}):\n${st.think.slice(0, THINK_KEEP)}\n\nTime is up. Do not think any further. Using the above, give the final JSON object now, nothing else.`;
+        last.content += `\n\nYOUR THINKING SO FAR (cut off: ${st.why}):\n${st.think.slice(-THINK_KEEP)}\n\nTime is up. Do not think any further. Take the best move your reasoning had reached (the latest one if it changed), and give the final JSON object now, nothing else.`;
         const body2 = { ...body, messages: msgs, max_tokens: 1500 };
         if (pid === "local") body2.chat_template_kwargs = { enable_thinking: false };
-        else body2.reasoning_effort = "low";
+        else if (anth) body2.reasoning_effort = "low";
+        else { delete body2.reasoning_effort; body2.thinking = { type: "disabled" }; body2.max_tokens = 3000; } // OpenAI-compatibel (DeepSeek): denken echt uit, anders eet het de antwoordruimte op
         res.write(sse({ reasoning_content: `\n\n[proxy: denken afgebroken (${st.why}); antwoord afgedwongen]\n` }));
         ctl = new AbortController();
         const up2 = wrap(await fetch(target, { method: "POST", headers, body: payload(body2), signal: ctl.signal }));

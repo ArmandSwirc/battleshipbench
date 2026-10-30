@@ -595,8 +595,9 @@ $("#dclose").onclick = () => $("#dlg").close();
 
 /* ---------- scores ---------- */
 function saveMatch(winner) {
-  const side = p => ({model:p.model, shots:p.history.length, hits:p.hits, fallbacks:p.fallbacks, ownPlacement:p.ownPlacement});
-  fetch("/api/matches", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({a:side(G.p.A), b:side(G.p.B), winner})}).catch(() => {});
+  const fleet = p => p.ships.map(x => ({name:x.name, len:x.len, cells:x.cells}));
+  const side = (p, foe) => ({model:p.model, shots:p.history.length, hits:p.hits, fallbacks:p.fallbacks, ownPlacement:p.ownPlacement, foeFleet:fleet(foe), moves:p.history.map(h => { const m = /^(\S+) → (\w+)(?: \((.+) sunk\))?/.exec(h); return {cell:m[1], result:m[3] ? "sunk " + m[3] : m[2]}; })});
+  fetch("/api/matches", {method:"POST", headers:{"content-type":"application/json"}, body: JSON.stringify({a:side(G.p.A, G.p.B), b:side(G.p.B, G.p.A), winner})}).catch(() => {});
 }
 const pct = x => (x*100).toFixed(0) + "%";
 async function showScores() {
