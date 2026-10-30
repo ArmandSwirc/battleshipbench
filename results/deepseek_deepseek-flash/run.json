@@ -1,0 +1,1181 @@
+{
+ "model": "deepseek/deepseek-flash",
+ "startedAt": "2026-10-30T05:50:30.893Z",
+ "boards": [
+  {
+   "seed": 11,
+   "shots": 56,
+   "finished": true,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       3,
+       2
+      ],
+      [
+       3,
+       3
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       3,
+       5
+      ],
+      [
+       3,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       0,
+       1
+      ],
+      [
+       0,
+       2
+      ],
+      [
+       0,
+       3
+      ],
+      [
+       0,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       5
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       9,
+       5
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       2,
+       1
+      ],
+      [
+       2,
+       2
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "miss"
+    },
+    {
+     "n": 2,
+     "cell": "D6",
+     "result": "miss"
+    },
+    {
+     "n": 3,
+     "cell": "F6",
+     "result": "miss"
+    },
+    {
+     "n": 4,
+     "cell": "G5",
+     "result": "miss"
+    },
+    {
+     "n": 5,
+     "cell": "F4",
+     "result": "hit"
+    },
+    {
+     "n": 6,
+     "cell": "F5",
+     "result": "miss"
+    },
+    {
+     "n": 7,
+     "cell": "F3",
+     "result": "miss"
+    },
+    {
+     "n": 8,
+     "cell": "E4",
+     "result": "hit"
+    },
+    {
+     "n": 9,
+     "cell": "D4",
+     "result": "hit"
+    },
+    {
+     "n": 10,
+     "cell": "C4",
+     "result": "hit"
+    },
+    {
+     "n": 11,
+     "cell": "B4",
+     "result": "miss"
+    },
+    {
+     "n": 12,
+     "cell": "G4",
+     "result": "sunk Carrier"
+    },
+    {
+     "n": 13,
+     "cell": "E7",
+     "result": "miss"
+    },
+    {
+     "n": 14,
+     "cell": "G7",
+     "result": "miss"
+    },
+    {
+     "n": 15,
+     "cell": "F8",
+     "result": "hit"
+    },
+    {
+     "n": 16,
+     "cell": "F9",
+     "result": "hit"
+    },
+    {
+     "n": 17,
+     "cell": "F10",
+     "result": "sunk Submarine"
+    },
+    {
+     "n": 18,
+     "cell": "C5",
+     "result": "miss"
+    },
+    {
+     "n": 19,
+     "cell": "H4",
+     "result": "miss"
+    },
+    {
+     "n": 20,
+     "cell": "E3",
+     "result": "miss"
+    },
+    {
+     "n": 21,
+     "cell": "H6",
+     "result": "miss"
+    },
+    {
+     "n": 22,
+     "cell": "C7",
+     "result": "miss"
+    },
+    {
+     "n": 23,
+     "cell": "I5",
+     "result": "miss"
+    },
+    {
+     "n": 24,
+     "cell": "D8",
+     "result": "miss"
+    },
+    {
+     "n": 25,
+     "cell": "G3",
+     "result": "miss"
+    },
+    {
+     "n": 26,
+     "cell": "B6",
+     "result": "miss"
+    },
+    {
+     "n": 27,
+     "cell": "E9",
+     "result": "miss"
+    },
+    {
+     "n": 28,
+     "cell": "C3",
+     "result": "hit"
+    },
+    {
+     "n": 29,
+     "cell": "C2",
+     "result": "miss"
+    },
+    {
+     "n": 30,
+     "cell": "D3",
+     "result": "miss"
+    },
+    {
+     "n": 31,
+     "cell": "B3",
+     "result": "sunk Destroyer"
+    },
+    {
+     "n": 32,
+     "cell": "D5",
+     "result": "miss"
+    },
+    {
+     "n": 33,
+     "cell": "C6",
+     "result": "miss"
+    },
+    {
+     "n": 34,
+     "cell": "I6",
+     "result": "miss"
+    },
+    {
+     "n": 35,
+     "cell": "G8",
+     "result": "miss"
+    },
+    {
+     "n": 36,
+     "cell": "D2",
+     "result": "miss"
+    },
+    {
+     "n": 37,
+     "cell": "H7",
+     "result": "miss"
+    },
+    {
+     "n": 38,
+     "cell": "B7",
+     "result": "miss"
+    },
+    {
+     "n": 39,
+     "cell": "G2",
+     "result": "miss"
+    },
+    {
+     "n": 40,
+     "cell": "C9",
+     "result": "miss"
+    },
+    {
+     "n": 41,
+     "cell": "J5",
+     "result": "miss"
+    },
+    {
+     "n": 42,
+     "cell": "A5",
+     "result": "miss"
+    },
+    {
+     "n": 43,
+     "cell": "I3",
+     "result": "miss"
+    },
+    {
+     "n": 44,
+     "cell": "E1",
+     "result": "hit"
+    },
+    {
+     "n": 45,
+     "cell": "E2",
+     "result": "miss"
+    },
+    {
+     "n": 46,
+     "cell": "D1",
+     "result": "hit"
+    },
+    {
+     "n": 47,
+     "cell": "C1",
+     "result": "hit"
+    },
+    {
+     "n": 48,
+     "cell": "F1",
+     "result": "miss"
+    },
+    {
+     "n": 49,
+     "cell": "B1",
+     "result": "sunk Battleship"
+    },
+    {
+     "n": 50,
+     "cell": "E10",
+     "result": "miss"
+    },
+    {
+     "n": 51,
+     "cell": "I9",
+     "result": "miss"
+    },
+    {
+     "n": 52,
+     "cell": "J8",
+     "result": "hit"
+    },
+    {
+     "n": 53,
+     "cell": "J7",
+     "result": "miss"
+    },
+    {
+     "n": 54,
+     "cell": "I8",
+     "result": "miss"
+    },
+    {
+     "n": 55,
+     "cell": "J9",
+     "result": "hit"
+    },
+    {
+     "n": 56,
+     "cell": "J10",
+     "result": "sunk Cruiser"
+    }
+   ]
+  },
+  {
+   "seed": 23,
+   "shots": 53,
+   "finished": true,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       2,
+       6
+      ],
+      [
+       3,
+       6
+      ],
+      [
+       4,
+       6
+      ],
+      [
+       5,
+       6
+      ],
+      [
+       6,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       8,
+       4
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       8,
+       6
+      ],
+      [
+       8,
+       7
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       1,
+       2
+      ],
+      [
+       1,
+       3
+      ],
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       5,
+       8
+      ],
+      [
+       6,
+       8
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "miss"
+    },
+    {
+     "n": 2,
+     "cell": "F6",
+     "result": "miss"
+    },
+    {
+     "n": 3,
+     "cell": "D4",
+     "result": "miss"
+    },
+    {
+     "n": 4,
+     "cell": "F4",
+     "result": "miss"
+    },
+    {
+     "n": 5,
+     "cell": "G5",
+     "result": "hit"
+    },
+    {
+     "n": 6,
+     "cell": "F5",
+     "result": "miss"
+    },
+    {
+     "n": 7,
+     "cell": "G4",
+     "result": "hit"
+    },
+    {
+     "n": 8,
+     "cell": "G6",
+     "result": "hit"
+    },
+    {
+     "n": 9,
+     "cell": "G3",
+     "result": "hit"
+    },
+    {
+     "n": 10,
+     "cell": "G2",
+     "result": "miss"
+    },
+    {
+     "n": 11,
+     "cell": "G7",
+     "result": "sunk Carrier"
+    },
+    {
+     "n": 12,
+     "cell": "D6",
+     "result": "miss"
+    },
+    {
+     "n": 13,
+     "cell": "E7",
+     "result": "miss"
+    },
+    {
+     "n": 14,
+     "cell": "E3",
+     "result": "miss"
+    },
+    {
+     "n": 15,
+     "cell": "F8",
+     "result": "miss"
+    },
+    {
+     "n": 16,
+     "cell": "C5",
+     "result": "miss"
+    },
+    {
+     "n": 17,
+     "cell": "H4",
+     "result": "miss"
+    },
+    {
+     "n": 18,
+     "cell": "H6",
+     "result": "miss"
+    },
+    {
+     "n": 19,
+     "cell": "C3",
+     "result": "miss"
+    },
+    {
+     "n": 20,
+     "cell": "C7",
+     "result": "miss"
+    },
+    {
+     "n": 21,
+     "cell": "I5",
+     "result": "miss"
+    },
+    {
+     "n": 22,
+     "cell": "D8",
+     "result": "miss"
+    },
+    {
+     "n": 23,
+     "cell": "E9",
+     "result": "hit"
+    },
+    {
+     "n": 24,
+     "cell": "E8",
+     "result": "miss"
+    },
+    {
+     "n": 25,
+     "cell": "D9",
+     "result": "miss"
+    },
+    {
+     "n": 26,
+     "cell": "F9",
+     "result": "hit"
+    },
+    {
+     "n": 27,
+     "cell": "G9",
+     "result": "hit"
+    },
+    {
+     "n": 28,
+     "cell": "H9",
+     "result": "sunk Battleship"
+    },
+    {
+     "n": 29,
+     "cell": "B4",
+     "result": "miss"
+    },
+    {
+     "n": 30,
+     "cell": "H8",
+     "result": "miss"
+    },
+    {
+     "n": 31,
+     "cell": "B6",
+     "result": "miss"
+    },
+    {
+     "n": 32,
+     "cell": "D2",
+     "result": "hit"
+    },
+    {
+     "n": 33,
+     "cell": "D1",
+     "result": "miss"
+    },
+    {
+     "n": 34,
+     "cell": "D3",
+     "result": "miss"
+    },
+    {
+     "n": 35,
+     "cell": "C2",
+     "result": "hit"
+    },
+    {
+     "n": 36,
+     "cell": "E2",
+     "result": "sunk Submarine"
+    },
+    {
+     "n": 37,
+     "cell": "F2",
+     "result": "miss"
+    },
+    {
+     "n": 38,
+     "cell": "B8",
+     "result": "miss"
+    },
+    {
+     "n": 39,
+     "cell": "I7",
+     "result": "hit"
+    },
+    {
+     "n": 40,
+     "cell": "I8",
+     "result": "miss"
+    },
+    {
+     "n": 41,
+     "cell": "I6",
+     "result": "sunk Destroyer"
+    },
+    {
+     "n": 42,
+     "cell": "E4",
+     "result": "miss"
+    },
+    {
+     "n": 43,
+     "cell": "D5",
+     "result": "miss"
+    },
+    {
+     "n": 44,
+     "cell": "C6",
+     "result": "miss"
+    },
+    {
+     "n": 45,
+     "cell": "H7",
+     "result": "miss"
+    },
+    {
+     "n": 46,
+     "cell": "F3",
+     "result": "miss"
+    },
+    {
+     "n": 47,
+     "cell": "G8",
+     "result": "miss"
+    },
+    {
+     "n": 48,
+     "cell": "A5",
+     "result": "miss"
+    },
+    {
+     "n": 49,
+     "cell": "B7",
+     "result": "miss"
+    },
+    {
+     "n": 50,
+     "cell": "J8",
+     "result": "hit"
+    },
+    {
+     "n": 51,
+     "cell": "J7",
+     "result": "miss"
+    },
+    {
+     "n": 52,
+     "cell": "J9",
+     "result": "hit"
+    },
+    {
+     "n": 53,
+     "cell": "J10",
+     "result": "sunk Cruiser"
+    }
+   ]
+  },
+  {
+   "id": 37,
+   "seed": 37,
+   "shots": 61,
+   "finished": true,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       1,
+       0
+      ],
+      [
+       1,
+       1
+      ],
+      [
+       1,
+       2
+      ],
+      [
+       1,
+       3
+      ],
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       2,
+       0
+      ],
+      [
+       3,
+       0
+      ],
+      [
+       4,
+       0
+      ],
+      [
+       5,
+       0
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       2,
+       4
+      ],
+      [
+       3,
+       4
+      ],
+      [
+       4,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       8,
+       5
+      ],
+      [
+       8,
+       6
+      ],
+      [
+       8,
+       7
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       1,
+       9
+      ],
+      [
+       2,
+       9
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "hit"
+    },
+    {
+     "n": 2,
+     "cell": "E4",
+     "result": "hit"
+    },
+    {
+     "n": 3,
+     "cell": "E6",
+     "result": "miss"
+    },
+    {
+     "n": 4,
+     "cell": "E3",
+     "result": "sunk Cruiser"
+    },
+    {
+     "n": 5,
+     "cell": "E7",
+     "result": "miss"
+    },
+    {
+     "n": 6,
+     "cell": "F6",
+     "result": "miss"
+    },
+    {
+     "n": 7,
+     "cell": "F8",
+     "result": "miss"
+    },
+    {
+     "n": 8,
+     "cell": "G5",
+     "result": "miss"
+    },
+    {
+     "n": 9,
+     "cell": "F4",
+     "result": "miss"
+    },
+    {
+     "n": 10,
+     "cell": "D6",
+     "result": "miss"
+    },
+    {
+     "n": 11,
+     "cell": "D4",
+     "result": "miss"
+    },
+    {
+     "n": 12,
+     "cell": "G7",
+     "result": "miss"
+    },
+    {
+     "n": 13,
+     "cell": "C5",
+     "result": "miss"
+    },
+    {
+     "n": 14,
+     "cell": "H6",
+     "result": "miss"
+    },
+    {
+     "n": 15,
+     "cell": "G3",
+     "result": "miss"
+    },
+    {
+     "n": 16,
+     "cell": "D8",
+     "result": "miss"
+    },
+    {
+     "n": 17,
+     "cell": "C3",
+     "result": "miss"
+    },
+    {
+     "n": 18,
+     "cell": "C7",
+     "result": "miss"
+    },
+    {
+     "n": 19,
+     "cell": "H4",
+     "result": "miss"
+    },
+    {
+     "n": 20,
+     "cell": "F2",
+     "result": "miss"
+    },
+    {
+     "n": 21,
+     "cell": "E9",
+     "result": "miss"
+    },
+    {
+     "n": 22,
+     "cell": "B6",
+     "result": "miss"
+    },
+    {
+     "n": 23,
+     "cell": "D2",
+     "result": "hit"
+    },
+    {
+     "n": 24,
+     "cell": "D1",
+     "result": "miss"
+    },
+    {
+     "n": 25,
+     "cell": "D3",
+     "result": "miss"
+    },
+    {
+     "n": 26,
+     "cell": "E2",
+     "result": "hit"
+    },
+    {
+     "n": 27,
+     "cell": "C2",
+     "result": "hit"
+    },
+    {
+     "n": 28,
+     "cell": "B2",
+     "result": "hit"
+    },
+    {
+     "n": 29,
+     "cell": "A2",
+     "result": "sunk Carrier"
+    },
+    {
+     "n": 30,
+     "cell": "B4",
+     "result": "miss"
+    },
+    {
+     "n": 31,
+     "cell": "I5",
+     "result": "miss"
+    },
+    {
+     "n": 32,
+     "cell": "H8",
+     "result": "miss"
+    },
+    {
+     "n": 33,
+     "cell": "G9",
+     "result": "hit"
+    },
+    {
+     "n": 34,
+     "cell": "G8",
+     "result": "miss"
+    },
+    {
+     "n": 35,
+     "cell": "H9",
+     "result": "hit"
+    },
+    {
+     "n": 36,
+     "cell": "F9",
+     "result": "sunk Submarine"
+    },
+    {
+     "n": 37,
+     "cell": "I7",
+     "result": "miss"
+    },
+    {
+     "n": 38,
+     "cell": "B8",
+     "result": "miss"
+    },
+    {
+     "n": 39,
+     "cell": "A5",
+     "result": "hit"
+    },
+    {
+     "n": 40,
+     "cell": "A6",
+     "result": "hit"
+    },
+    {
+     "n": 41,
+     "cell": "A4",
+     "result": "hit"
+    },
+    {
+     "n": 42,
+     "cell": "A3",
+     "result": "sunk Battleship"
+    },
+    {
+     "n": 43,
+     "cell": "C9",
+     "result": "miss"
+    },
+    {
+     "n": 44,
+     "cell": "J6",
+     "result": "miss"
+    },
+    {
+     "n": 45,
+     "cell": "E1",
+     "result": "miss"
+    },
+    {
+     "n": 46,
+     "cell": "I3",
+     "result": "miss"
+    },
+    {
+     "n": 47,
+     "cell": "H2",
+     "result": "miss"
+    },
+    {
+     "n": 48,
+     "cell": "F10",
+     "result": "miss"
+    },
+    {
+     "n": 49,
+     "cell": "D10",
+     "result": "miss"
+    },
+    {
+     "n": 50,
+     "cell": "J4",
+     "result": "miss"
+    },
+    {
+     "n": 51,
+     "cell": "G1",
+     "result": "miss"
+    },
+    {
+     "n": 52,
+     "cell": "I9",
+     "result": "miss"
+    },
+    {
+     "n": 53,
+     "cell": "A7",
+     "result": "miss"
+    },
+    {
+     "n": 54,
+     "cell": "I1",
+     "result": "miss"
+    },
+    {
+     "n": 55,
+     "cell": "H10",
+     "result": "miss"
+    },
+    {
+     "n": 56,
+     "cell": "J8",
+     "result": "miss"
+    },
+    {
+     "n": 57,
+     "cell": "C1",
+     "result": "miss"
+    },
+    {
+     "n": 58,
+     "cell": "B10",
+     "result": "miss"
+    },
+    {
+     "n": 59,
+     "cell": "J2",
+     "result": "hit"
+    },
+    {
+     "n": 60,
+     "cell": "J1",
+     "result": "miss"
+    },
+    {
+     "n": 61,
+     "cell": "J3",
+     "result": "sunk Destroyer"
+    }
+   ]
+  }
+ ]
+}

@@ -14,9 +14,10 @@
 | # | Model | Score | Avg shots | Boards | Auto-moves |
 |--:|---|--:|--:|--:|--:|
 | 1 | unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M | **66.3** | 45 | 3 | 0 |
-| 2 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |
-| 3 | laya-multilingual | **20.5** | 83 | 3 | 0 |
-| 4 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |
+| 2 | deepseek-flash | **52.2** | 56.7 | 3 | 0 |
+| 3 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |
+| 4 | laya-multilingual | **20.5** | 83 | 3 | 0 |
+| 5 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |
 
 ### ⚔️ Arena (head-to-head, Elo)
 
