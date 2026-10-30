@@ -86,7 +86,7 @@ const looping = (think) => {
 // SSE-verwerking per call: verzamelt denken en antwoord en bewaakt de denklengte (alleen met guard, zolang er geen antwoord is).
 const newState = (guard, budget = THINK_BUDGET) => ({ dec: new TextDecoder(), buf: "", think: "", content: "", chunks: 0, guard, budget, why: "" });
 function feed(st, chunk) {
-  st.buf += st.dec.decode(chunk, { stream: true });
+  st.buf += typeof chunk === "string" ? chunk : st.dec.decode(chunk, { stream: true }); // fromAnthropic levert strings
   let i;
   while ((i = st.buf.indexOf("\n")) >= 0) {
     const line = st.buf.slice(0, i).trim(); st.buf = st.buf.slice(i + 1);
