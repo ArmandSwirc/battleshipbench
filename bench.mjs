@@ -134,7 +134,7 @@ ${strategy}
 --- END ---
 You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only the number of shots counts.
 
-Every turn also contains a MATCH DOSSIER: your own running notes of this board so far (every shot, what it found and why you fired it). It is a log that grows by one entry after every shot (cell, result and the reason you gave) and starts empty on every new board; nothing carries over between boards. Use it to adapt your search; your strategy is a starting plan, not a script.
+Every turn also contains a MATCH DOSSIER: your own running notes of this board so far. Use it to adapt your search; your strategy is a starting plan, not a script.
 
 ${THINK ? `${OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${THINK} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.` : OUTPUT}
 Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
@@ -147,7 +147,7 @@ function parseJSON(text) {
   return null;
 }
 // Dossier: per bord één logboek dat na elk schot wordt aangevuld (niet elke beurt opnieuw opgebouwd). Begint blanco op elk nieuw bord.
-const dossierText = (dos) => dos.length ? `MATCH DOSSIER (this board, one entry added after every shot)\n${dos.join("\n")}` : "MATCH DOSSIER (this board): empty, you have not fired yet.";
+const dossierText = (dos) => `MATCH DOSSIER (this board), one entry per shot you fired:\n${dos.length ? dos.join("\n") : "(no entries yet)"}`;
 const render = (b) => {
   const rows = ["   " + COLS.split("").join(" ")], open_ = [], fired = [], sunkCell = (y, x) => b.grid[y][x] >= 0 && b.ships[b.grid[y][x]].hits === b.ships[b.grid[y][x]].len;
   for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s, x) => { if (!s) return "."; fired.push(cell(y, x)); if (s.result === "miss") return "o"; if (sunkCell(y, x)) return "S"; open_.push(cell(y, x)); return "X"; }).join(" "));
@@ -238,7 +238,7 @@ async function writeStrategy(model) {
   console.log(`strategy: ${STRATEGY.name || (STRATEGY.own ? "own plan" : "no valid answer, standard plan")}`);
 }
 async function playModel(model, seed) {
-  const b = newBoard(seed), rand = rng(seed + 7), dos = []; let fallbacks = 0;
+  const b = newBoard(seed), rand = rng(seed + 7), dos = []; let fallbacks = 0, streak = 0;
   Object.assign(LIVE, { phase: null, seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
   while (!done(b) && b.count < MAX_SHOTS) {
     let mv = null, extra = "", tries = 0, ask1 = null, fb = false, why = ""; LIVE.turn = b.count + 1;
@@ -250,7 +250,8 @@ async function playModel(model, seed) {
       const rc = parse(j?.move);
       if (rc && !b.shots[rc[0]][rc[1]]) { mv = rc; why = String(j?.why ?? "").slice(0, 600); } else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
     }
-    if (!mv) { mv = botRandom(b, rand); fallbacks++; fb = true; }
+    if (!mv) { mv = botRandom(b, rand); fallbacks++; fb = true; streak++; } else streak = 0;
+    if (streak >= 5) { console.log("\n5 auto-moves in a row: model gives no usable answers, run stopped to avoid wasted API cost."); process.exit(1); }
     const fr = fire(b, ...mv);
     try { appendFileSync(SHOTS, JSON.stringify({ ts: new Date().toISOString(), model, seed, n: b.count, cell: cell(...mv), result: fr.result, fallback: fb, tries, cut: ask1?.cut ?? null, think: ask1?.tok ?? null, ms: ask1?.ms ?? null, budget: THINK }) + "\n"); } catch {}
     LIVE.cells[mv[0]][mv[1]] = fr.result === "miss" ? "o" : "X"; LIVE.fallbacks = fallbacks;

@@ -359,7 +359,7 @@ Before the game you wrote this strategy for yourself:
 --- YOUR STRATEGY ---
 ${strategy}
 --- END ---
-You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only your result counts.${dos ? "\n\nEvery turn also contains a MATCH DOSSIER: your running notes of this game so far (every shot, what it found, and how the opponent has shot at you). It is a log that grows by one entry after every shot (yours with the reason you gave, and the opponent's), and starts empty every game. Use it to learn how this opponent behaves and adapt your search; your strategy is a starting plan, not a script." : ""}
+You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only your result counts.${dos ? "\n\nEvery turn also contains a MATCH DOSSIER: your running notes of this game so far (your shots and the opponent's). Use it to adapt your search; your strategy is a starting plan, not a script." : ""}
 
 ${FREE_OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${SHOT_BUDGET} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.
 Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
@@ -368,7 +368,7 @@ Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
 function liveDossier(me, foe) {
   const mine = me.history.map((h, i) => `#${i+1} ${h}${me.notes[i]?.why && !me.notes[i].fallback ? ": " + me.notes[i].why : ""}`);
   const theirs = foe.history.map((h, i) => `#${i+1} ${h}`);
-  return ["MATCH DOSSIER (this game, one entry added after every shot)", "Your shots at the enemy fleet:", ...(mine.length ? mine : ["  none yet"]), "The opponent's shots at your fleet:", ...(theirs.length ? theirs : ["  none yet"])].join("\n");
+  return ["MATCH DOSSIER (this game), one entry per shot:", "Your shots:", ...(mine.length ? mine : ["  (no entries yet)"]), "Opponent's shots at you:", ...(theirs.length ? theirs : ["  (no entries yet)"])].join("\n");
 }
 // Zelfde bord als de benchmark (stateText), zonder moduswoorden of tips; plus een expliciete lijst van al beschoten cellen.
 function freeState(me, enemy) {
