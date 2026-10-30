@@ -40,18 +40,28 @@ details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 12px v
 main{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,480px));justify-content:center;gap:24px;padding:24px;margin:auto}
 .panel.empty section{display:none}.ph select,.go{font:12px var(--mono);background:var(--sunk);color:var(--ink);border:1px solid var(--line);border-radius:3px;padding:4px 8px}.ph .model{max-width:260px;min-width:0}.go{cursor:pointer;color:var(--b);border-color:var(--b)}.go:disabled{opacity:.4;cursor:default}.panel .grid{max-width:420px;margin:0 auto}.stop{font:12px var(--mono);color:var(--bad);background:none;border:1px solid var(--bad);border-radius:3px;padding:3px 9px;cursor:pointer}.stop:hover{background:var(--bad);color:#fff}.stop[hidden]{display:none}.panel pre{height:220px;max-height:220px;overflow:auto}
 .panel{display:flex;flex-direction:column;gap:16px;min-width:0}.ph{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.ph .slot{font:600 15px var(--mono);color:var(--ink-3)}.ph .upd{margin-left:auto}
+.panel[hidden]{display:none}.panel{animation:pin .25s ease-out}@keyframes pin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+main.one{grid-template-columns:minmax(340px,680px)}main.one .panel .grid{max-width:520px}main.one .panel pre{height:300px;max-height:300px}
+main.two{grid-template-columns:repeat(auto-fit,minmax(340px,480px))}
+.tabs{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;padding:14px 24px 0}
+.tab{display:inline-flex;align-items:center;gap:8px;padding:5px 6px 5px 12px;border:1px solid var(--line);border-radius:99px;background:var(--raised);font:12px var(--mono);color:var(--ink-2);animation:pin .2s ease-out}
+.tab .dot{width:8px;height:8px;border-radius:50%;background:var(--a)}.tab.b .dot{background:var(--b)}.tab b{color:var(--ink)}.tab .ts{color:var(--ink-3)}
+.tab .x{width:22px;height:22px;border-radius:50%;border:0;background:var(--sunk);color:var(--ink-2);font:15px/1 var(--mono);cursor:pointer;padding:0}.tab .x:hover:not(:disabled){background:var(--bad);color:#fff}.tab .x:disabled{opacity:.35;cursor:not-allowed}
+.add{font:12px var(--mono);padding:6px 12px;border:1px dashed var(--ink-3);border-radius:99px;background:none;color:var(--ink-2);cursor:pointer}.add:hover{border-color:var(--a);color:var(--a)}
+.tabs .max{font:12px var(--mono);color:var(--ink-3)}
 .about{max-width:900px;margin:0 auto;padding:0 24px 24px}
 </style></head><body>
 <header><h1>Battleship<b>Bench</b> <span style="font-weight:400;color:var(--ink-3)">· Gauntlet live</span></h1>
 <nav><a href="/">← 1v1 arena</a></nav></header>
-<main id="main"></main>
+<div class="tabs" id="tabs" role="toolbar" aria-label="Open benchmarks"></div>
+<main id="main" class="one"></main>
 <div class="about"><section class="card"><details><summary>How the boards are made</summary>
 <p><b>Fixed &amp; shared.</b> All models play the same first 3 boards of <code>boards.json</code>, so scores are comparable and reproducible.</p>
 <p><b>Difficult.</b> For each board, 300 random legal fleets were generated and each was played by the probability-density bot (3 times). The fleet that bot needed the most shots to find was kept. Fleets hide where density heuristics look least.</p>
 <p><b>Realistic.</b> Only plausible fleets qualify: standard fleet (5-4-3-3-2), ships straight and non-overlapping, may touch, 2-3 horizontal ships (mixed orientation), at most 2 ships flush against the border.</p>
 <p><b>Score.</b> 100 × (100 − avg shots) / 83. 100 = 17 shots; 0 = not finished in 100.</p></details></section></div>
 <template id="tpl"><section class="panel">
-<div class="ph"><b class="slot"></b><select class="model"></select><select class="nb"><option>1</option><option>3</option><option selected>5</option><option>10</option></select><button class="go">▶ Start</button><button class="stop" hidden>■ Stop</button><span class="pill state">idle</span><span class="pill upd"></span></div>
+<div class="ph"><b class="slot"></b><select class="model"></select><select class="nb"><option>1</option><option selected>3</option><option>5</option><option>10</option></select><button class="go">▶ Start</button><button class="stop" hidden>■ Stop</button><span class="pill state">idle</span><span class="pill upd"></span></div>
 <section class="card"><h2>Board <span class="bseed"></span></h2><div class="grid"></div>
 <div class="fleet"></div></section>
  <section class="card"><h2>Thinking <span class="tk"></span></h2><div class="turn" hidden><span class="tn"></span><small class="tl"></small></div><pre class="think">–</pre></section>
@@ -111,11 +121,29 @@ function render(P,s){
 }
 const PANELS={};
 for(const sl of SLOTS){PANELS[sl]=mk(sl);$("#main").appendChild(PANELS[sl].el)}
+// 1 or 2 benchmark panels (A, B); default 1, remembered per browser, a running bench always shows
+let VIS=(()=>{try{const v=JSON.parse(localStorage.getItem("bb-slots"));const f=SLOTS.filter(x=>Array.isArray(v)&&v.includes(x));if(f.length)return f}catch{}return["a"]})();
+const LAST={},RUN={};let tabsKey="";
+const saveVis=()=>{try{localStorage.setItem("bb-slots",JSON.stringify(VIS))}catch{}};
+function layout(){
+ for(const sl of SLOTS)PANELS[sl].el.hidden=!VIS.includes(sl);
+ $("#main").className=VIS.length>1?"two":"one";
+ const html=VIS.map(sl=>{const run=RUN[sl],why=run?"Stop the run first":VIS.length<2?"Keep at least one benchmark open":"Close benchmark "+sl.toUpperCase();
+  return `<span class="tab ${sl}"><i class="dot"></i><b>${sl.toUpperCase()}</b><span class="ts">${LAST[sl]||"idle"}</span><button class="x" data-sl="${sl}" ${run||VIS.length<2?"disabled":""} title="${why}" aria-label="${why}">×</button></span>`}).join("")
+  +(VIS.length<2?`<button class="add" id="add" title="Open a second benchmark next to this one">+ Add benchmark</button>`:`<span class="max">2 of 2 open</span>`);
+ if(html!==tabsKey){tabsKey=html;$("#tabs").innerHTML=html}}
+$("#tabs").addEventListener("click",e=>{
+ const x=e.target.closest(".x");if(x&&!x.disabled){VIS=VIS.filter(s=>s!==x.dataset.sl);saveVis();layout();return}
+ if(e.target.closest("#add")&&VIS.length<2){const n=SLOTS.find(s=>!VIS.includes(s));VIS=SLOTS.filter(s=>VIS.includes(s)||s===n);saveVis();layout()}});
+layout();
 fetch("/api/models").then(r=>r.json()).then(gs=>{const opts=gs.flatMap(g=>g.models.map(m=>`<option value="${g.id}/${m}">${g.id}/${m}</option>`)).join("");
  for(const sl of SLOTS){PANELS[sl].q("model").innerHTML=opts}});
 async function tick(slot){
  let s;try{s=await (await fetch("/api/bench/live?slot="+slot,{cache:"no-store"})).json()}catch{return}
- render(PANELS[slot],s);
+ const run=!!s.alive&&!["done","stopped","idle"].includes(s.status),stale=!s.alive&&["starting","thinking","firing"].includes(s.status);
+ RUN[slot]=run;LAST[slot]=stale?"stopped":(s.status||"idle");
+ if(run&&!VIS.includes(slot)){VIS=SLOTS.filter(x=>VIS.includes(x)||x===slot);saveVis()}
+ layout();if(VIS.includes(slot))render(PANELS[slot],s);
 }
 for(const sl of SLOTS)setInterval(()=>tick(sl),600);
 </script></body></html>

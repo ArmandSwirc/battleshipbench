@@ -1,4 +1,2 @@
-{"ts":"2026-10-30T01:46:24.650Z","name":"Random bot","boards":10,"avgShots":96.9,"score":3.7,"fallbacks":0,"bot":true}
-{"ts":"2026-10-30T01:46:24.720Z","name":"Probability bot","boards":10,"avgShots":64.9,"score":42.3,"fallbacks":0,"bot":true}
 {"ts":"2026-10-30T03:21:21.536Z","name":"Random bot","boards":3,"avgShots":98,"score":2.4,"fallbacks":0,"bot":true,"perSeed":[{"seed":11,"shots":98,"fallbacks":0},{"seed":23,"shots":96,"fallbacks":0},{"seed":37,"shots":100,"fallbacks":0}]}
 {"ts":"2026-10-30T03:21:21.568Z","name":"Probability bot","boards":3,"avgShots":68.7,"score":37.8,"fallbacks":0,"bot":true,"perSeed":[{"seed":11,"shots":69,"fallbacks":0},{"seed":23,"shots":63,"fallbacks":0},{"seed":37,"shots":74,"fallbacks":0}]}
