@@ -4,8 +4,8 @@
  "boards": [
   {
    "seed": 11,
-   "shots": 30,
-   "finished": false,
+   "shots": 57,
+   "finished": true,
    "fallbacks": 0,
    "ships": [
     {
@@ -257,8 +257,303 @@
      "n": 30,
      "cell": "B10",
      "result": "miss"
+    },
+    {
+     "n": 31,
+     "cell": "A8",
+     "result": "miss"
+    },
+    {
+     "n": 32,
+     "cell": "J1",
+     "result": "miss"
+    },
+    {
+     "n": 33,
+     "cell": "C1",
+     "result": "hit"
+    },
+    {
+     "n": 34,
+     "cell": "D1",
+     "result": "hit"
+    },
+    {
+     "n": 35,
+     "cell": "B1",
+     "result": "hit"
+    },
+    {
+     "n": 36,
+     "cell": "A1",
+     "result": "miss"
+    },
+    {
+     "n": 37,
+     "cell": "E1",
+     "result": "sunk Battleship"
+    },
+    {
+     "n": 38,
+     "cell": "J9",
+     "result": "hit"
+    },
+    {
+     "n": 39,
+     "cell": "J8",
+     "result": "hit"
+    },
+    {
+     "n": 40,
+     "cell": "J7",
+     "result": "miss"
+    },
+    {
+     "n": 41,
+     "cell": "J10",
+     "result": "sunk Cruiser"
+    },
+    {
+     "n": 42,
+     "cell": "H6",
+     "result": "miss"
+    },
+    {
+     "n": 43,
+     "cell": "G7",
+     "result": "miss"
+    },
+    {
+     "n": 44,
+     "cell": "F3",
+     "result": "miss"
+    },
+    {
+     "n": 45,
+     "cell": "I5",
+     "result": "miss"
+    },
+    {
+     "n": 46,
+     "cell": "C8",
+     "result": "miss"
+    },
+    {
+     "n": 47,
+     "cell": "G2",
+     "result": "miss"
+    },
+    {
+     "n": 48,
+     "cell": "B4",
+     "result": "miss"
+    },
+    {
+     "n": 49,
+     "cell": "H9",
+     "result": "miss"
+    },
+    {
+     "n": 50,
+     "cell": "D10",
+     "result": "miss"
+    },
+    {
+     "n": 51,
+     "cell": "I2",
+     "result": "miss"
+    },
+    {
+     "n": 52,
+     "cell": "B9",
+     "result": "miss"
+    },
+    {
+     "n": 53,
+     "cell": "A3",
+     "result": "miss"
+    },
+    {
+     "n": 54,
+     "cell": "J3",
+     "result": "miss"
+    },
+    {
+     "n": 55,
+     "cell": "E6",
+     "result": "miss"
+    },
+    {
+     "n": 56,
+     "cell": "C3",
+     "result": "hit"
+    },
+    {
+     "n": 57,
+     "cell": "B3",
+     "result": "sunk Destroyer"
+    }
+   ]
+  },
+  {
+   "seed": 23,
+   "shots": 10,
+   "finished": false,
+   "fallbacks": 0,
+   "ships": [
+    {
+     "name": "Carrier",
+     "len": 5,
+     "cells": [
+      [
+       2,
+       6
+      ],
+      [
+       3,
+       6
+      ],
+      [
+       4,
+       6
+      ],
+      [
+       5,
+       6
+      ],
+      [
+       6,
+       6
+      ]
+     ]
+    },
+    {
+     "name": "Battleship",
+     "len": 4,
+     "cells": [
+      [
+       8,
+       4
+      ],
+      [
+       8,
+       5
+      ],
+      [
+       8,
+       6
+      ],
+      [
+       8,
+       7
+      ]
+     ]
+    },
+    {
+     "name": "Cruiser",
+     "len": 3,
+     "cells": [
+      [
+       7,
+       9
+      ],
+      [
+       8,
+       9
+      ],
+      [
+       9,
+       9
+      ]
+     ]
+    },
+    {
+     "name": "Submarine",
+     "len": 3,
+     "cells": [
+      [
+       1,
+       2
+      ],
+      [
+       1,
+       3
+      ],
+      [
+       1,
+       4
+      ]
+     ]
+    },
+    {
+     "name": "Destroyer",
+     "len": 2,
+     "cells": [
+      [
+       5,
+       8
+      ],
+      [
+       6,
+       8
+      ]
+     ]
+    }
+   ],
+   "sequence": [
+    {
+     "n": 1,
+     "cell": "E5",
+     "result": "miss"
+    },
+    {
+     "n": 2,
+     "cell": "F6",
+     "result": "miss"
+    },
+    {
+     "n": 3,
+     "cell": "D4",
+     "result": "miss"
+    },
+    {
+     "n": 4,
+     "cell": "F5",
+     "result": "miss"
+    },
+    {
+     "n": 5,
+     "cell": "G7",
+     "result": "hit"
+    },
+    {
+     "n": 6,
+     "cell": "G6",
+     "result": "hit"
+    },
+    {
+     "n": 7,
+     "cell": "G5",
+     "result": "hit"
+    },
+    {
+     "n": 8,
+     "cell": "G8",
+     "result": "miss"
+    },
+    {
+     "n": 9,
+     "cell": "G4",
+     "result": "hit"
+    },
+    {
+     "n": 10,
+     "cell": "G3",
+     "result": "sunk Carrier"
     }
    ]
   }
- ]
+ ],
+ "strategy": "Keep a ledger of every shot and its result. The primary method is to track all legal complete fleet layouts consistent with the evidence: ships are straight, in bounds, nonoverlapping, and may touch; every miss must be water, every hit must be occupied, and each reported sink must match that ship’s type and the shots already made. Treat legal layouts as equally likely unless evidence rules them out. For each unshot cell, count the surviving layouts in which it contains an unsunk ship. Fire at the cell with the highest fraction. If tied, choose the cell whose possible feedback outcomes (miss, hit, or a named sink) divide the layouts most evenly; then prefer the more central cell, breaking any remaining tie in row-major order. After each shot, discard layouts that would not have produced the actual feedback and repeat. This naturally favors follow-up shots near unresolved hits and uses the remaining ship lengths and orientations to rule out impossible targets. Do not assume adjacent hits belong to the same ship: ships may touch. Keep layouts that assign them either way until the evidence resolves it. Once all five ships are sunk, stop.\n\nIf you cannot maintain layout counts, use this concrete fallback. With no unresolved hits, hunt the checkerboard squares, starting near the center and moving outward; after a hit, pause the hunt and target it. Every straight ship of length at least two contains a square of either checkerboard color, so one color alone is a reliable search pattern. Resume the pattern after resolving the hit, skipping every cell already fired at.\n\nFor manual targeting, from a single unresolved hit, try its available orthogonal neighbors, never diagonals as extensions of that ship. A miss rules out that direction for the ship. Once two hits appear collinear and are plausibly the same ship, try the open ends of that line; after an end hits, continue outward, and stop extending at a miss, boundary, or sink. If the ship is not sunk, test any other still-possible direction. With several unresolved hits, handle them as separate possibilities rather than merging them merely because they touch; prioritize the hit and direction best supported by the remaining fleet and all prior results. Keep checking for other ships while targeting, since a nearby hit can belong to a different ship.",
+ "strategyName": "Fleetwise Checkerhunt"
 }

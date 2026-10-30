@@ -31,12 +31,15 @@
 | # | Model | Elo | Wins | Games |
 |--:|---|--:|--:|--:|
 | 1 | claude-sonnet-5-5 | **1016** | 1 | 1 |
-| 2 | gpt-6.1-terra | **984** | 0 | 1 |
+| 2 | gpt-6.1-sol | **1016** | 1 | 1 |
+| 3 | gpt-6.1-terra | **984** | 0 | 1 |
+| 4 | claude-opus-5-5 | **984** | 0 | 1 |
 
 **Game replays** (strategy, reasoning and every shot per game):
 
 | Match-up | Games | Replay |
 |---|--:|---|
+| claude-opus-5-5 vs gpt-6.1-sol | 1 | [strategy & shots](results/arena/anthropic_claude-opus-5-5_vs_openrouter_openai_gpt-6.1-sol/games.md) · [boards](results/arena/anthropic_claude-opus-5-5_vs_openrouter_openai_gpt-6.1-sol/overview.svg) |
 | claude-sonnet-5-5 vs gpt-6.1-terra | 1 | [strategy & shots](results/arena/anthropic_claude-sonnet-5-5_vs_openrouter_openai_gpt-6.1-terra/games.md) · [boards](results/arena/anthropic_claude-sonnet-5-5_vs_openrouter_openai_gpt-6.1-terra/overview.svg) |
 
 </details>
