@@ -397,7 +397,7 @@
   },
   {
    "seed": 23,
-   "shots": 10,
+   "shots": 20,
    "finished": false,
    "fallbacks": 0,
    "ships": [
@@ -550,6 +550,56 @@
      "n": 10,
      "cell": "G3",
      "result": "sunk Carrier"
+    },
+    {
+     "n": 11,
+     "cell": "C7",
+     "result": "miss"
+    },
+    {
+     "n": 12,
+     "cell": "C3",
+     "result": "miss"
+    },
+    {
+     "n": 13,
+     "cell": "D8",
+     "result": "miss"
+    },
+    {
+     "n": 14,
+     "cell": "E2",
+     "result": "hit"
+    },
+    {
+     "n": 15,
+     "cell": "D2",
+     "result": "hit"
+    },
+    {
+     "n": 16,
+     "cell": "F2",
+     "result": "miss"
+    },
+    {
+     "n": 17,
+     "cell": "C2",
+     "result": "sunk Submarine"
+    },
+    {
+     "n": 18,
+     "cell": "B6",
+     "result": "miss"
+    },
+    {
+     "n": 19,
+     "cell": "E9",
+     "result": "hit"
+    },
+    {
+     "n": 20,
+     "cell": "D9",
+     "result": "miss"
     }
    ]
   }
