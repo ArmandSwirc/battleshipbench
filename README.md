@@ -55,7 +55,7 @@ Invalid moves (off-board, already-fired cell, no JSON) get two retries with feed
 **Strategy first, then complete freedom** (same idea as the arena's free play). Every model gets the same two phases:
 
 1. **Strategy:** before the first shot it writes its own game plan (how it searches, how it follows up a hit). The plan is fixed for the whole run and shown back on every turn of every board. Ship placement is skipped: the boards are fixed.
-2. **Play:** each shot is the model's own call. The prompt holds only the rules, its own strategy and the board (finished ships `S`, open hits `X`, the unresolved hits, the smallest remaining ship and the list of cells already fired). No steps, no modes, no tips, and no thinking cap.
+2. **Play:** each shot is the model's own call. The prompt holds only the rules, its own strategy and the board (finished ships `S`, open hits `X`, the unresolved hits, the smallest remaining ship and the list of cells already fired). No steps, no modes, no tips. Thinking is capped at 8000 tokens per shot (the same for every model and for the 1v1 arena), only as a guard against endless loops: when the cap is hit, or the model repeats itself, the reasoning is cut off and it must answer from it. The strategy written up front has no cap.
 
 Each run saves the strategy and the reasoning of every shot in `results/<model>/strategy.md`.
 

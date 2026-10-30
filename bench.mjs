@@ -107,7 +107,7 @@ async function playBot(fn, seed) {
 }
 
 // ---- model-speler (via server.mjs) ----
-const THINK = Number(process.env.BENCH_THINK ?? 0); // denk-tokens per aanroep; 0 = onbeperkt (vrij spel: geen budget, geen lusbewaking, Stop breekt af)
+const THINK = Number(process.env.BENCH_THINK ?? 8000); // denk-tokens per schot (met lusbewaking; daarna wordt het antwoord afgedwongen). De strategie vooraf is onbeperkt (0).
 // Twee fasen, zoals in de 1v1 Vrij spel: eerst schrijft het model één keer zijn eigen strategie (staat daarna vast voor alle borden),
 // daarna speelt het elk bord in volledige vrijheid, zonder stappen, modi of tips van de benchmark. Plaatsing vervalt: de borden liggen vast.
 const RULES = `GAME: Battleship, solo. Board 10x10. Columns A-J (left to right), rows 1-10 (top to bottom). A cell is written like "E5" (column E, row 5).
@@ -134,7 +134,7 @@ ${strategy}
 --- END ---
 You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only the number of shots counts.
 
-${OUTPUT}
+${OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${THINK} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.
 Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
 const FALLBACK_STRATEGY = "No own strategy was received. Play sensibly: search with a checkerboard pattern, follow a hit until the ship is sunk and use the lengths of the ships that are still afloat.";
 const validStrategy = (j) => { const s = String(j?.strategy ?? "").trim(); return s.length >= 40 ? { name: String(j.name ?? "").trim().slice(0, 60), strategy: s.slice(0, 20000) } : null; };
@@ -193,9 +193,9 @@ async function decide(model, b) {
   if (!mv) throw new Error("no valid choice");
   return { mv, why: `${v.mode}: ${best.k} scores ${Math.round(100 * best.p)}% yes of ${cands.length} open cells`, ms: Date.now() - t0 };
 }
-async function ask(model, system, user) {
-  LIVE.think = ""; LIVE.thinkChars = 0; LIVE.thinkTok = 0; LIVE.thinkMax = THINK; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
-  const body = { model, think_budget: THINK, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: system }, { role: "user", content: user }] };
+async function ask(model, system, user, budget = THINK) {
+  LIVE.think = ""; LIVE.thinkChars = 0; LIVE.thinkTok = 0; LIVE.thinkMax = budget; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
+  const body = { model, think_budget: budget, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: system }, { role: "user", content: user }] };
   const res = await fetch(`${SERVER}/api/chat`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
   const dec = new TextDecoder(); let buf = "", out = "", cut = false;
@@ -215,8 +215,8 @@ async function ask(model, system, user) {
   lastAsk = { cut, tok: LIVE.thinkTok, ms: Date.now() - LIVE.askStart };
   return out;
 }
-async function askRetry(model, system, user) {
-  for (let n = 1; ; n++) try { return await ask(model, system, user); } catch (e) { if (n >= 5) throw e; await new Promise((r) => setTimeout(r, 1500 * n)); }
+async function askRetry(model, system, user, budget) {
+  for (let n = 1; ; n++) try { return await ask(model, system, user, budget); } catch (e) { if (n >= 5) throw e; await new Promise((r) => setTimeout(r, 1500 * n)); }
 }
 let STRATEGY = { name: "", text: FALLBACK_STRATEGY }; // per run: één strategie voor alle borden
 async function writeStrategy(model) {
@@ -225,7 +225,7 @@ async function writeStrategy(model) {
   if (DECISION.has(model)) { LIVE.strategy = "Decision model: it answers yes/no questions per cell and does not write a plan."; LIVE.phase = null; return; }
   let extra = "";
   for (let t = 0; t < 3; t++) {
-    let text = ""; try { text = await askRetry(model, STRATEGY_SYSTEM, "Write your strategy now. JSON only." + extra); } catch (e) { console.log(`\n${e.message}`); break; }
+    let text = ""; try { text = await askRetry(model, STRATEGY_SYSTEM, "Write your strategy now. JSON only." + extra, 0); } catch (e) { console.log(`\n${e.message}`); break; }
     const v = validStrategy(parseJSON(text));
     if (v) { STRATEGY = { name: v.name, text: v.strategy, own: true }; break; }
     extra = '\n\nINVALID: answer with one JSON object {"name":"...","strategy":"..."} where "strategy" is a concrete plan of at least a few sentences.';

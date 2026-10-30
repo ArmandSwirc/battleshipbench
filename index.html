@@ -277,7 +277,7 @@ function updateCard(k) {
 /* ---------- prompts ---------- */
 // Kansenkaart als hulpmiddel: uit = het model moet zelf redeneren over het bord (meet slimheid); aan = code telt de plaatsingen.
 const HEAT_HINT = false;
-const THINK_TOK = 5000; // denk-tokens per schot, zoals in de benchmark
+const THINK_TOK = 8000; // denk-tokens per schot, zoals in de benchmark
 
 const RULES = `GAME: Battleship, 1 versus 1, you against another AI. Board 10x10. Columns A-J (left to right), rows 1-10 (top to bottom). A cell is written like "E5" (column E, row 5).
 Each side has 5 ships, straight lines, horizontal or vertical (never diagonal), fully on the board, never overlapping (ships MAY touch each other side by side):
@@ -326,6 +326,7 @@ Thinking: your budget is ${THINK_TOK} tokens per shot. Decide quickly, and alway
 
 
 /* ---------- vrij spel: eigen strategie, eigen plaatsing, geen benchmark-regels ---------- */
+const SHOT_BUDGET = 8000; // denk-tokens per schot: daarna kapt de proxy het denken af en dwingt het antwoord af (ook lusbewaking). Strategie, plaatsing en les blijven onbeperkt.
 const FREE_BUDGET = 0; // 0 = onbeperkt: geen denkbudget, geen lusbewaking, geen max_tokens (de proxy laat het model volledig uitdenken; Stop breekt af)
 const FREE_OUTPUT = `OUTPUT: your final answer must be exactly one JSON object and nothing else (no markdown fences, no text before or after). Write all text fields in Dutch. Take all the time and space you need to think; there is no limit on your thinking or on the length of your answer.`;
 
@@ -365,7 +366,7 @@ ${strategy}
 --- END ---
 You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only your result counts.
 
-${FREE_OUTPUT}
+${FREE_OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${SHOT_BUDGET} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.
 Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
 
 // Zelfde bord als de benchmark (stateText), zonder moduswoorden of tips; plus een expliciete lijst van al beschoten cellen.
@@ -590,7 +591,7 @@ async function takeTurn(k, free) {
     if (foe.shots[rc[0]][rc[1]]) return {err:`You already fired at ${coord(...rc)}. Choose a cell shown as "." on the board.`};
     return {ok:rc};
   };
-  const r = free ? await askJSON(k, FREE_TURN_SYSTEM(me.strategy), freeState(me, foe), validate, FREE_BUDGET) : await askJSON(k, TURN_SYSTEM, stateText(me, foe), validate);
+  const r = free ? await askJSON(k, FREE_TURN_SYSTEM(me.strategy), freeState(me, foe), validate, SHOT_BUDGET) : await askJSON(k, TURN_SYSTEM, stateText(me, foe), validate);
   $("#move"+k).classList.remove("live");
   let move, why = "", fallback = false;
   if (r) { move = r.value; why = String(r.parsed.why ?? "").slice(0, 240); }
