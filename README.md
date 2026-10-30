@@ -35,13 +35,15 @@
 
 | # | Model | Elo | Wins | Games |
 |--:|---|--:|--:|--:|
-| 1 | gpt-6-luna | **1016** | 1 | 1 |
-| 2 | glm-5.3-flash | **984** | 0 | 1 |
+| 1 | claude-haiku-5-5 | **1017** | 1 | 1 |
+| 2 | gpt-6-luna | **999** | 1 | 2 |
+| 3 | glm-5.3-flash | **984** | 0 | 1 |
 
 **Game replays** (strategy, reasoning and every shot per game):
 
 | Match-up | Games | Replay |
 |---|--:|---|
+| claude-haiku-5-5 vs gpt-6-luna | 1 | [strategy & shots](results/arena/anthropic_claude-haiku-5-5_vs_openrouter_openai_gpt-6-luna/games.md) · [boards](results/arena/anthropic_claude-haiku-5-5_vs_openrouter_openai_gpt-6-luna/overview.svg) |
 | gpt-6-luna vs glm-5.3-flash | 1 | [strategy & shots](results/arena/openrouter_openai_gpt-6-luna_vs_openrouter_z-ai_glm-5.3-flash/games.md) · [boards](results/arena/openrouter_openai_gpt-6-luna_vs_openrouter_z-ai_glm-5.3-flash/overview.svg) |
 
 </details>
