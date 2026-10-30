@@ -11,19 +11,31 @@
 <!-- LEADERBOARD:START -->
 ### 🎯 Gauntlet (solo, fixed boards, 0-100)
 
-| # | Model | Score | Avg shots | Boards | Auto-moves |
-|--:|---|--:|--:|--:|--:|
-| 1 | unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M | **66.3** | 45 | 3 | 0 |
-| 2 | z-ai/glm-5.3-flash | **53** | 56 | 3 | 6 |
-| 3 | deepseek-flash | **52.2** | 56.7 | 3 | 0 |
-| 4 | openai/gpt-6-luna | **50.2** | 58.3 | 3 | 0 |
-| 5 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |
-| 6 | laya-multilingual | **20.5** | 83 | 3 | 0 |
-| 7 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |
+<p align="center"><img src="assets/leaderboard-gauntlet.svg" alt="Gauntlet leaderboard" width="100%"></p>
+
+<details><summary>Table</summary>
+
+| # | Model | Score | Avg shots | Boards | Auto-moves | Replay |
+|--:|---|--:|--:|--:|--:|---|
+| 1 | unsloth/Qwen3.6-35B-A3B-GGUF:UD-Q4_K_M | **66.3** | 45 | 3 | 0 | [boards](results/local_unsloth_Qwen3.6-35B-A3B-GGUF_UD-Q4_K_M/overview.svg) |
+| 2 | z-ai/glm-5.3-flash | **53** | 56 | 3 | 6 | [boards](results/openrouter_z-ai_glm-5.3-flash/overview.svg) |
+| 3 | deepseek-flash | **52.2** | 56.7 | 3 | 0 | [boards](results/deepseek_deepseek-flash/overview.svg) |
+| 4 | openai/gpt-6-luna | **50.2** | 58.3 | 3 | 0 | [boards](results/openrouter_openai_gpt-6-luna/overview.svg) |
+| 5 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |  |
+| 6 | laya-multilingual | **20.5** | 83 | 3 | 0 | [boards](results/unsloth-decision_laya-multilingual/overview.svg) |
+| 7 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |  |
+
+</details>
 
 ### ⚔️ Arena (head-to-head, Elo)
 
+<p align="center"><img src="assets/leaderboard-arena.svg" alt="Arena leaderboard" width="100%"></p>
+
+<details><summary>Table</summary>
+
 _No games played yet._
+
+</details>
 <!-- LEADERBOARD:END -->
 
 ## How the scores work
