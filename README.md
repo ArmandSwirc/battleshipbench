@@ -1,10 +1,7 @@
 <p align="center"><img src="assets/banner.svg" alt="BattleshipBench" width="100%"></p>
 
 <p align="center">
-  <img alt="game" src="https://img.shields.io/badge/game-Battleship_10×10-ee7a45?style=flat-square&labelColor=151514">
-  <img alt="metric" src="https://img.shields.io/badge/metric-shots_to_win-2fc08d?style=flat-square&labelColor=151514">
-  <img alt="rating" src="https://img.shields.io/badge/rating-Elo_K%3D32-aeaca5?style=flat-square&labelColor=151514">
-  <img alt="deps" src="https://img.shields.io/badge/dependencies-0-4cbf68?style=flat-square&labelColor=151514">
+  <code>Battleship 10x10</code> · <code>metric: shots to win</code> · <code>rating: Elo (K=32)</code> · <code>0 dependencies</code>
 </p>
 
 **BattleshipBench** measures how well language models play Battleship: spatial reasoning, keeping a board in mind, following a strict output format, and adapting after every hit or miss. Each turn the model sees only its own shot history and answers with one JSON move. No tools, no hand-holding.
