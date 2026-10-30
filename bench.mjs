@@ -5,16 +5,20 @@
 //   node bench.mjs readme                       leaderboard in README.md bijwerken
 import { readFileSync, writeFileSync, appendFileSync, existsSync, renameSync } from "node:fs";
 import { fileURLToPath } from "node:url";
+import { saveBoard, publish } from "./results.mjs";
 
 const SIZE = 10, FLEET = [["Carrier", 5], ["Battleship", 4], ["Cruiser", 3], ["Submarine", 3], ["Destroyer", 2]];
 const MAX_SHOTS = 100, MIN_SHOTS = 17, SEEDS = [11, 23, 37, 41, 59, 61, 73, 89, 97, 101];
-const SERVER = process.env.BENCH_SERVER ?? "http://127.0.0.1:8791";
+const SERVER = process.env.BENCH_SERVER ?? "http://127.0.0.1:8793";
 const BENCH = fileURLToPath(new URL("./bench.jsonl", import.meta.url));
 const MATCHES = fileURLToPath(new URL("./matches.jsonl", import.meta.url));
 const README = fileURLToPath(new URL("./README.md", import.meta.url));
 // Live stand voor het benchmark-scherm (server.mjs serveert /bench en /api/bench/live)
-const LIVE_FILE = fileURLToPath(new URL("./bench-live.json", import.meta.url));
-const LIVE = { status: "idle", shots: [], results: [], think: "" };
+const SLOT = process.argv.includes("--slot") ? process.argv[process.argv.indexOf("--slot") + 1] : "a"; // a | b: twee benches naast elkaar
+const SHOTS = fileURLToPath(new URL("./shots.jsonl", import.meta.url)); // één regel per schot: raak/mis, afgekapt of niet
+const LIVE_FILE = fileURLToPath(new URL(SLOT === "b" ? "./bench-live-b.json" : "./bench-live.json", import.meta.url));
+const LIVE = { status: "idle", shots: [], results: [], think: "", pid: process.pid };
+for (const sig of ["SIGTERM", "SIGINT"]) process.on(sig, () => { LIVE.status = "stopped"; flush(true); process.exit(130); });
 let lastFlush = 0;
 function flush(force) {
   const t = Date.now(); if (!force && t - lastFlush < 300) return; lastFlush = t;
@@ -101,19 +105,21 @@ async function playBot(fn, seed) {
 }
 
 // ---- model-speler (via server.mjs) ----
-const SYSTEM = `You play Battleship (10x10, columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight, never overlap, and may touch. Fire one shot per turn at a cell not yet fired at. Reply with ONLY a JSON object: {"move":"E5"}`;
+const THINK = Number(process.env.BENCH_THINK ?? 4000); // denk-tokens per schot
+const SYSTEM = `You play Battleship (10x10, columns A-J, rows 1-10) against a hidden fleet: Carrier 5, Battleship 4, Cruiser 3, Submarine 3, Destroyer 2. Ships are straight, never overlap, and may touch. Fire one shot per turn at a cell not yet fired at. You have a thinking budget of ${THINK} tokens per shot. Reach a decision well within it, and as you reason always keep a current best move in mind. When the budget runs out your reasoning is cut off, you see it again and must answer from it, so a move you already settled on is never lost. Reply with ONLY a JSON object: {"move":"E5"}`;
 const render = (b) => {
   const rows = ["   " + COLS.split("").join(" ")];
   for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s) => (!s ? "." : s.result === "miss" ? "o" : "X")).join(" "));
   const sunk = b.ships.filter((s) => s.hits === s.len).map((s) => s.name);
   return `Board (. unknown, o miss, X hit):\n${rows.join("\n")}\nSunk: ${sunk.join(", ") || "none"}. Remaining: ${b.ships.filter((s) => s.hits < s.len).map((s) => `${s.name}(${s.len})`).join(", ")}.\nShots fired: ${b.count}. Your move, JSON only.`;
 };
+let lastAsk = { cut: false, tok: 0, ms: 0 };
 async function ask(model, user) {
-  LIVE.think = ""; LIVE.thinkChars = 0; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
-  const body = { model, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }] };
+  LIVE.think = ""; LIVE.thinkChars = 0; LIVE.thinkTok = 0; LIVE.thinkMax = THINK; LIVE.askStart = Date.now(); LIVE.status = "thinking"; flush(true);
+  const body = { model, think_budget: THINK, stream: true, temperature: 0.6, reasoning_effort: "high", chat_template_kwargs: { enable_thinking: true }, messages: [{ role: "system", content: SYSTEM }, { role: "user", content: user }] };
   const res = await fetch(`${SERVER}/api/chat`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
   if (!res.ok) throw new Error(`HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const dec = new TextDecoder(); let buf = "", out = "";
+  const dec = new TextDecoder(); let buf = "", out = "", cut = false;
   for await (const chunk of res.body) {
     buf += dec.decode(chunk, { stream: true });
     for (let i; (i = buf.indexOf("\n")) >= 0;) {
@@ -122,11 +128,12 @@ async function ask(model, user) {
       try {
         const d = JSON.parse(line.slice(5)).choices?.[0]?.delta ?? {};
         if (d.content) out += d.content;
-        if (d.reasoning_content) { LIVE.think = (LIVE.think + d.reasoning_content).slice(-3000); LIVE.thinkChars = (LIVE.thinkChars ?? 0) + d.reasoning_content.length; }
+        if (d.reasoning_content) { if (d.reasoning_content.includes("[proxy: denken afgebroken")) cut = true; LIVE.think = (LIVE.think + d.reasoning_content).slice(-20000); LIVE.thinkChars = (LIVE.thinkChars ?? 0) + d.reasoning_content.length; LIVE.thinkTok++; }
         if (d.content || d.reasoning_content) flush();
       } catch {}
     }
   }
+  lastAsk = { cut, tok: LIVE.thinkTok, ms: Date.now() - LIVE.askStart };
   return out;
 }
 async function askRetry(model, user) {
@@ -136,21 +143,23 @@ async function playModel(model, seed) {
   const b = newBoard(seed), rand = rng(seed + 7); let fallbacks = 0;
   Object.assign(LIVE, { seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
   while (!done(b) && b.count < MAX_SHOTS) {
-    let mv = null, extra = "";
+    let mv = null, extra = "", tries = 0, ask1 = null, fb = false; LIVE.turn = b.count + 1;
     for (let t = 0; t < 3 && !mv; t++) {
-      let text = ""; try { text = await askRetry(model, render(b) + extra); } catch (e) { console.log(`\n${e.message}`); break; }
+      tries++; let text = ""; try { text = await askRetry(model, render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
       const m = /\{[^{}]*\}/.exec(text.replace(/```(?:json)?/g, "")); let j = null; try { j = m && JSON.parse(m[0]); } catch {}
       const rc = parse(j?.move);
       if (rc && !b.shots[rc[0]][rc[1]]) mv = rc; else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
     }
-    if (!mv) { mv = botRandom(b, rand); fallbacks++; }
+    if (!mv) { mv = botRandom(b, rand); fallbacks++; fb = true; }
     const fr = fire(b, ...mv);
+    try { appendFileSync(SHOTS, JSON.stringify({ ts: new Date().toISOString(), model, seed, n: b.count, cell: cell(...mv), result: fr.result, fallback: fb, tries, cut: ask1?.cut ?? null, think: ask1?.tok ?? null, ms: ask1?.ms ?? null, budget: THINK }) + "\n"); } catch {}
     LIVE.cells[mv[0]][mv[1]] = fr.result === "miss" ? "o" : "X"; LIVE.fallbacks = fallbacks;
     LIVE.shots.push({ cell: cell(...mv), result: fr.result === "sunk" ? `sunk ${fr.ship}` : fr.result });
     if (fr.ship) LIVE.sunk.push(fr.ship);
     LIVE.status = "firing"; flush(true);
     process.stdout.write(done(b) ? "!" : b.shots[mv[0]][mv[1]].result === "miss" ? "." : "X");
   }
+  try { saveBoard({ model, seed, ships: b.ships, shots: LIVE.shots, fallbacks, finished: done(b), startedAt: LIVE.startedAt }); } catch (e) { console.log(`\nresults: ${e.message}`); }
   console.log(` board ${seed}: ${b.count} shots${done(b) ? "" : " (not finished)"} · ${fallbacks} auto-moves`);
   return { shots: done(b) ? b.count : MAX_SHOTS, fallbacks };
 }
@@ -202,7 +211,7 @@ if (cmd === "bots") {
   await bench("Random bot", (s) => playBot(botRandom, s), SEEDS.length);
   await bench("Probability bot", (s) => playBot(botProb, s), SEEDS.length);
   readme();
-} else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards); readme(); }
+} else if (cmd === "run" && model) { await bench(model, (s) => playModel(model, s), boards); readme(); try { console.log(publish(`results: ${model}`)); } catch (e) { console.log(`publish failed: ${e.message.split("\n")[0]}`); } }
 else if (cmd === "boards") await genBoards();
 else if (cmd === "readme") readme();
-else console.log("usage: node bench.mjs boards | bots | run <provider/model> [--boards N] | readme");
+else console.log("usage: node bench.mjs boards | bots | run <provider/model> [--boards N] [--slot a|b] | readme");
