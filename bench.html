@@ -13,14 +13,14 @@ h1{margin:0;font-size:18px;letter-spacing:-.01em}h1 b{color:var(--b)}
 main{display:grid;grid-template-columns:minmax(300px,420px) 1fr;gap:24px;padding:24px;max-width:1300px;margin:auto}
 @media(max-width:900px){main{grid-template-columns:1fr}}
 .card{background:var(--raised);border:1px solid var(--line);border-radius:6px;padding:16px}
-h2{margin:0 0 10px;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+h2{margin:0 0 10px;font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .grid{display:grid;grid-template-columns:22px repeat(10,1fr);gap:3px}
-.grid i{font:11px var(--mono);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-style:normal}
+.grid i{font:12px var(--mono);color:var(--ink-3);display:flex;align-items:center;justify-content:center;font-style:normal}
 .c{aspect-ratio:1;border-radius:2px;background:var(--water);display:flex;align-items:center;justify-content:center;font:600 12px var(--mono)}
-.c{position:relative;color:var(--ink-3)}.c.sh{background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 70%,transparent)}.c.sh::before{content:attr(data-l);position:absolute;font:600 11px var(--mono);color:var(--sc);opacity:.9}.c.sh.o::before{display:none}.c.X{box-shadow:inset 0 0 0 2px var(--sc)}.c.sunk{background:color-mix(in srgb,var(--sc) 55%,#000)}.c.o::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
+.c{position:relative;color:var(--ink-3)}.c.sh{background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--sc) 70%,transparent)}.c.sh::before{content:attr(data-l);position:absolute;font:600 12px var(--mono);color:var(--sc);opacity:.9}.c.sh.o::before{display:none}.c.X{box-shadow:inset 0 0 0 2px var(--sc)}.c.sunk{background:color-mix(in srgb,var(--sc) 55%,#000)}.c.o::after{content:"";width:6px;height:6px;border-radius:50%;background:var(--ink-3)}
 .c.X{background:var(--bad);color:#fff}.c.X::after{content:"✕"}.c.X::before{display:none}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
-.stat b{display:block;font:600 24px var(--mono);letter-spacing:-.02em}.stat span{font:11px var(--mono);color:var(--ink-3);text-transform:uppercase}
+.stat b{display:block;font:600 24px var(--mono);letter-spacing:-.02em}.stat span{font:12px var(--mono);color:var(--ink-3);text-transform:uppercase}
 .bar{height:6px;background:var(--sunk);border-radius:3px;overflow:hidden;margin:6px 0 14px}.bar div{height:100%;background:var(--b);width:0;transition:width .4s}
 .chips{display:flex;flex-wrap:wrap;gap:6px}.chip{font:12px var(--mono);padding:3px 8px;border:1px solid var(--line);border-radius:3px;background:var(--sunk)}
 .chip.cur{border-color:var(--b);color:var(--b)}
@@ -31,7 +31,7 @@ pre{margin:0;white-space:pre-wrap;word-break:break-word;font:12px/1.5 var(--mono
 .fl .sw{display:flex;gap:2px}.fl .sw i{width:12px;height:12px;border-radius:2px;background:color-mix(in srgb,var(--sc) 28%,var(--water));box-shadow:inset 0 0 0 1px var(--sc)}.fl .sw i.x{background:var(--bad)}
 .fl.dead{color:var(--ink-3);text-decoration:line-through}.fl b{min-width:92px;font-weight:600;color:var(--ink)}
 nav{margin-left:8px;display:flex;gap:6px}nav a{font:12px var(--mono);color:var(--ink-2);text-decoration:none;border:1px solid var(--line);border-radius:3px;padding:3px 9px}nav a:hover{border-color:var(--ink-3)}
-details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}details p{margin:10px 0 0}
+details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 12px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}details p{margin:10px 0 0}
 .score{font:600 40px var(--mono);color:var(--b);letter-spacing:-.03em}
 .col{display:flex;flex-direction:column;gap:16px}
 </style></head><body>
@@ -39,7 +39,7 @@ details{font-size:13px;color:var(--ink-2)}summary{cursor:pointer;font:600 11px v
 <nav><a href="/">← 1v1 arena</a></nav><span class="pill" id="model">–</span><span class="pill" id="state">idle</span><span style="margin-left:auto" class="pill" id="upd"></span></header>
 <main>
 <div class="col"><section class="card"><h2>Board <span id="bseed"></span></h2><div class="grid" id="grid"></div>
-<div class="fleet" id="fleet"></div><p style="margin:12px 0 0;font:11px var(--mono);color:var(--ink-3)">Ships are shown for you only; the model sees just its own shots.</p></section>
+<div class="fleet" id="fleet"></div><p style="margin:12px 0 0;font:12px var(--mono);color:var(--ink-3)">Ships are shown for you only; the model sees just its own shots.</p></section>
 <section class="card"><details><summary>How the boards are made</summary>
 <p><b>Fixed &amp; shared.</b> All models play the same 10 boards (<code>boards.json</code>), so scores are comparable and reproducible.</p>
 <p><b>Difficult.</b> For each board, 300 random legal fleets were generated and each was played by the probability-density bot (3 times). The fleet that bot needed the most shots to find was kept. Fleets hide where density heuristics look least.</p>
