@@ -85,7 +85,7 @@ Caveat: boards are tuned against the density bot, which makes the bot a *harsh* 
 
 Two models play each other, each one placing its own fleet. Every finished game updates an **Elo** rating (start 1000, K = 32): beating a stronger model earns more than beating a weaker one. Swap sides across games to cancel out the first-move advantage. Also tracked per model: win rate, average shots per win, accuracy (hits / shots) and auto-moves.
 
-**Dossier mode** (default): every game starts blank, no memory across games. Each turn the model gets, next to the board, a fresh dossier built from that game only: where it has searched (hits per ring from the edge to the centre) and how the opponent has shot at its fleet (recent shots, hit rate, parity, edge shots). It never sees the opponent's strategy text or reasoning. Every game is saved under `results/arena/<A>_vs_<B>/` with its strategy and every shot with reasoning.
+**Dossier mode** (default): every game starts blank, no memory across games. Each turn the model gets, next to the board, a dossier of that game only: a log that grows by one entry after every shot (its own shot with the reason it gave, and the opponent's shots at its fleet). The Gauntlet works the same way per board, and thinking is unlimited in both. It never sees the opponent's strategy text or reasoning. Every game is saved under `results/arena/<A>_vs_<B>/` with its strategy and every shot with reasoning.
 
 ## Run it
 

@@ -134,7 +134,7 @@
 <div class="top">
   <div class="brand"><i></i>zeeslag-arena</div>
   <label>Pauze <input id="delay" type="number" min="0" max="10" step="0.5" value="1" style="width:58px"> s</label>
-  <label title="Dossier: zoals vrij spel, maar elke beurt krijgt het model een vers dossier uit deze partij zelf (waar het zocht, wat dat opleverde, hoe de tegenstander schiet). Geen geheugen over partijen heen: elke partij begint blanco. Vrij spel: elk model schrijft eerst zijn eigen strategie (staat daarna vast), plaatst dan zijn vloot en speelt het duel zonder de stappen en regels van de benchmark. Benchmark-regels: dezelfde beurtprompt als de benchmark (HUNT/TARGET).">modus <select id="mode"><option value="dossier">Dossier (vrij spel + live dossier per partij)</option><option value="free">Vrij spel (eigen strategie)</option><option value="bench">Benchmark-regels</option></select></label>
+  <label title="Dossier: zoals vrij spel, maar elke beurt krijgt het model het logboek van deze partij zelf (na elk schot komt er een regel bij: jouw schot met reden, en de schoten van de tegenstander). Geen geheugen over partijen heen: elke partij begint blanco. Vrij spel: elk model schrijft eerst zijn eigen strategie (staat daarna vast), plaatst dan zijn vloot en speelt het duel zonder de stappen en regels van de benchmark. Benchmark-regels: dezelfde beurtprompt als de benchmark (HUNT/TARGET).">modus <select id="mode"><option value="dossier">Dossier (vrij spel + live dossier per partij)</option><option value="free">Vrij spel (eigen strategie)</option><option value="bench">Benchmark-regels</option></select></label>
   <label title="Aan: elke agent bepaalt zelf waar zijn schepen staan. Uit: willekeurige plaatsing."><input id="selfplace" type="checkbox" checked> agents plaatsen zelf</label>
   <label title="Splash laadt één model tegelijk. Aan: elke agent gebruikt zijn eigen lokale model en Splash wisselt per beurt (traag). Uit: agent B gebruikt hetzelfde lokale model als agent A."><input id="swap" type="checkbox" checked> Splash-modellen wisselen</label>
   <span class="grow"></span>
@@ -359,25 +359,16 @@ Before the game you wrote this strategy for yourself:
 --- YOUR STRATEGY ---
 ${strategy}
 --- END ---
-You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only your result counts.${dos ? "\n\nEvery turn also contains a MATCH DOSSIER: facts you observed in this game so far (where you have searched and what it found, and how the opponent has shot at you). It is built fresh each turn from the real shot history. Use it to learn how this opponent behaves and adapt your search; your strategy is a starting plan, not a script." : ""}
+You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only your result counts.${dos ? "\n\nEvery turn also contains a MATCH DOSSIER: your running notes of this game so far (every shot, what it found, and how the opponent has shot at you). It is a log that grows by one entry after every shot (yours with the reason you gave, and the opponent's), and starts empty every game. Use it to learn how this opponent behaves and adapt your search; your strategy is a starting plan, not a script." : ""}
 
 ${FREE_OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${SHOT_BUDGET} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.
 Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
 
-// Dossier modus: feiten uit deze partij zelf, elke beurt vers opgebouwd uit wat de speler heeft waargenomen (eigen schoten en de schoten van de tegenstander op zijn vloot).
-const RING = ["outer edge ring", "2nd ring", "3rd ring", "4th ring", "centre 2x2"], ring = (r,c) => Math.min(r, c, SIZE-1-r, SIZE-1-c);
+// Dossier modus: logboek van deze partij dat na elk schot groeit (me.history/foe.history + me.notes zijn append-only); begint blanco per partij.
 function liveDossier(me, foe) {
-  const g = RING.map(() => ({n:0, fired:0, hits:0}));
-  for (let r = 0; r < SIZE; r++) for (let c = 0; c < SIZE; c++) { const k = g[ring(r,c)], s = foe.shots[r][c]; k.n++; if (s) { k.fired++; if (s !== "miss") k.hits++; } }
-  const out = ["MATCH DOSSIER (built from this game so far)", "Where you have searched (your shots at the enemy fleet):"];
-  g.forEach((k, i) => out.push(`  ${RING[i]}: ${k.fired} of ${k.n} cells fired, ${k.hits} hits`));
-  const ob = foe.history.map(h => { const m = /^(\S+) → (\w+)/.exec(h); return {cell:m[1], hit:m[2] !== "miss"}; });
-  if (!ob.length) out.push("The opponent has not fired yet.");
-  else {
-    const par = ob.filter(o => { const r = Number(o.cell.slice(1)) - 1, c = COLS.indexOf(o.cell[0]); return (r + c) % 2 === 0; }).length, edge = ob.filter(o => ring(Number(o.cell.slice(1)) - 1, COLS.indexOf(o.cell[0])) === 0).length;
-    out.push(`The opponent has fired ${ob.length} shots at your fleet, ${ob.filter(o => o.hit).length} hits: ${ob.slice(-20).map(o => o.cell + (o.hit ? "*" : "")).join(" ")}${ob.length > 20 ? " (last 20)" : ""} (* = hit). ${Math.round(par / ob.length * 100)}% of them on checkerboard parity, ${edge} on the outer edge ring.`);
-  }
-  return out.join("\n");
+  const mine = me.history.map((h, i) => `#${i+1} ${h}${me.notes[i]?.why && !me.notes[i].fallback ? ": " + me.notes[i].why : ""}`);
+  const theirs = foe.history.map((h, i) => `#${i+1} ${h}`);
+  return ["MATCH DOSSIER (this game, one entry added after every shot)", "Your shots at the enemy fleet:", ...(mine.length ? mine : ["  none yet"]), "The opponent's shots at your fleet:", ...(theirs.length ? theirs : ["  none yet"])].join("\n");
 }
 // Zelfde bord als de benchmark (stateText), zonder moduswoorden of tips; plus een expliciete lijst van al beschoten cellen.
 function freeState(me, enemy) {

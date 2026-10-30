@@ -107,7 +107,7 @@ async function playBot(fn, seed) {
 }
 
 // ---- model-speler (via server.mjs) ----
-const THINK = Number(process.env.BENCH_THINK ?? 8000); // denk-tokens per schot (met lusbewaking; daarna wordt het antwoord afgedwongen). De strategie vooraf is onbeperkt (0).
+const THINK = Number(process.env.BENCH_THINK ?? 0); // denk-tokens per schot; 0 = onbeperkt (zoals 1v1 Vrij spel: geen budget, geen lusbewaking). BENCH_THINK=8000 zet het budget terug.
 // Twee fasen, zoals in de 1v1 Vrij spel: eerst schrijft het model één keer zijn eigen strategie (staat daarna vast voor alle borden),
 // daarna speelt het elk bord in volledige vrijheid, zonder stappen, modi of tips van de benchmark. Plaatsing vervalt: de borden liggen vast.
 const RULES = `GAME: Battleship, solo. Board 10x10. Columns A-J (left to right), rows 1-10 (top to bottom). A cell is written like "E5" (column E, row 5).
@@ -134,7 +134,9 @@ ${strategy}
 --- END ---
 You decide how to play. Follow your strategy, and deviate whenever the board gives you a reason to. Nobody checks your reasoning, only the number of shots counts.
 
-${OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${THINK} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.
+Every turn also contains a MATCH DOSSIER: your own running notes of this board so far (every shot, what it found and why you fired it). It is a log that grows by one entry after every shot (cell, result and the reason you gave) and starts empty on every new board; nothing carries over between boards. Use it to adapt your search; your strategy is a starting plan, not a script.
+
+${THINK ? `${OUTPUT.replace(/ Take all the time[^`]*$/, "")} Thinking: you have about ${THINK} tokens per shot. Decide quickly and keep a current best move in mind; if the budget runs out your reasoning is cut off and you must answer from it.` : OUTPUT}
 Schema: {"move":"E5","why":"one short sentence on why this cell"}`;
 const FALLBACK_STRATEGY = "No own strategy was received. Play sensibly: search with a checkerboard pattern, follow a hit until the ship is sunk and use the lengths of the ships that are still afloat.";
 const validStrategy = (j) => { const s = String(j?.strategy ?? "").trim(); return s.length >= 40 ? { name: String(j.name ?? "").trim().slice(0, 60), strategy: s.slice(0, 20000) } : null; };
@@ -144,6 +146,8 @@ function parseJSON(text) {
   for (let b = s.lastIndexOf("}"); a >= 0 && b > a; b = s.lastIndexOf("}", b - 1)) { try { return JSON.parse(s.slice(a, b + 1)); } catch {} }
   return null;
 }
+// Dossier: per bord één logboek dat na elk schot wordt aangevuld (niet elke beurt opnieuw opgebouwd). Begint blanco op elk nieuw bord.
+const dossierText = (dos) => dos.length ? `MATCH DOSSIER (this board, one entry added after every shot)\n${dos.join("\n")}` : "MATCH DOSSIER (this board): empty, you have not fired yet.";
 const render = (b) => {
   const rows = ["   " + COLS.split("").join(" ")], open_ = [], fired = [], sunkCell = (y, x) => b.grid[y][x] >= 0 && b.ships[b.grid[y][x]].hits === b.ships[b.grid[y][x]].len;
   for (let y = 0; y < SIZE; y++) rows.push(String(y + 1).padStart(2) + " " + b.shots[y].map((s, x) => { if (!s) return "."; fired.push(cell(y, x)); if (s.result === "miss") return "o"; if (sunkCell(y, x)) return "S"; open_.push(cell(y, x)); return "X"; }).join(" "));
@@ -234,14 +238,14 @@ async function writeStrategy(model) {
   console.log(`strategy: ${STRATEGY.name || (STRATEGY.own ? "own plan" : "no valid answer, standard plan")}`);
 }
 async function playModel(model, seed) {
-  const b = newBoard(seed), rand = rng(seed + 7); let fallbacks = 0;
+  const b = newBoard(seed), rand = rng(seed + 7), dos = []; let fallbacks = 0;
   Object.assign(LIVE, { phase: null, seed, shots: [], cells: Array.from({ length: SIZE }, () => Array(SIZE).fill("")), shipGrid: b.grid, fleet: b.ships.map((x) => ({ name: x.name, len: x.len })), fallbacks: 0, sunk: [], status: "thinking" }); flush(true);
   while (!done(b) && b.count < MAX_SHOTS) {
     let mv = null, extra = "", tries = 0, ask1 = null, fb = false, why = ""; LIVE.turn = b.count + 1;
     for (let t = 0; t < 3 && !mv; t++) {
       tries++;
       if (DECISION.has(model)) { try { const d = await decide(model, b); mv = d.mv; why = d.why; ask1 = { cut: false, tok: 0, ms: d.ms }; } catch (e) { console.log(`\n${e.message}`); } continue; }
-      let text = ""; try { text = await askRetry(model, TURN_SYSTEM(STRATEGY.text), render(b) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
+      let text = ""; try { text = await askRetry(model, TURN_SYSTEM(STRATEGY.text), render(b) + "\n\n" + dossierText(dos) + extra); ask1 = { ...lastAsk }; } catch (e) { console.log(`\n${e.message}`); break; }
       const j = parseJSON(text);
       const rc = parse(j?.move);
       if (rc && !b.shots[rc[0]][rc[1]]) { mv = rc; why = String(j?.why ?? "").slice(0, 600); } else extra = `\n\nINVALID: "${j?.move ?? "no JSON"}" is not an unfired cell A1-J10. Pick a "." cell.`;
@@ -252,6 +256,7 @@ async function playModel(model, seed) {
     LIVE.cells[mv[0]][mv[1]] = fr.result === "miss" ? "o" : "X"; LIVE.fallbacks = fallbacks;
     LIVE.shots.push({ cell: cell(...mv), result: fr.result === "sunk" ? `sunk ${fr.ship}` : fr.result, why });
     if (fr.ship) LIVE.sunk.push(fr.ship);
+    dos.push(`#${b.count} ${cell(...mv)} → ${fr.result === "sunk" ? `sunk ${fr.ship}` : fr.result}${fb ? " (auto-move)" : why ? `: ${why}` : ""}`);
     LIVE.status = "firing"; flush(true);
     process.stdout.write(done(b) ? "!" : b.shots[mv[0]][mv[1]].result === "miss" ? "." : "X");
   }
