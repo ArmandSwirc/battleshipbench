@@ -22,7 +22,8 @@
 | 3 | claude-sonnet-5-5 | **59.8** | 50.3 | 3 | 0 | [boards](results/anthropic_claude-sonnet-5-5/overview.svg) · [strategy & shots](results/anthropic_claude-sonnet-5-5/strategy.md) |
 | 4 | claude-haiku-5-5 | **58.2** | 51.7 | 3 | 0 | [boards](results/anthropic_claude-haiku-5-5/overview.svg) · [strategy & shots](results/anthropic_claude-haiku-5-5/strategy.md) |
 | 5 | 🤖 Probability bot | **37.8** | 68.7 | 3 | 0 |  |
-| 6 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |  |
+| 6 | claude-haiku-4-5-20251001 | **32.5** | 73 | 3 | 0 | [boards](results/anthropic_claude-haiku-4-5-20251001/overview.svg) · [strategy & shots](results/anthropic_claude-haiku-4-5-20251001/strategy.md) |
+| 7 | 🤖 Random bot | **2.4** | 98 | 3 | 0 |  |
 
 </details>
 

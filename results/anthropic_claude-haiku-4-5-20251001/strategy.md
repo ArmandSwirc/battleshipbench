@@ -131,3 +131,148 @@
 | 83 | F9 | hit | F8 is a hit, horizontal directions (E8, G8) are misses, so submarine must be vertical; probe F9 below F8 to find the 3-cell submarine |
 | 84 | F10 | sunk Submarine | Submarine must be vertical F8-F9-F10 since F7 is a miss and horizontal directions are misses; fire F10 to sink it |
 
+## Board 23 · 86 shots
+
+| # | Cell | Result | Reasoning |
+|---|---|---|---|
+| 1 | A2 | miss | Starting checkerboard pattern search (column_index + row_index even) to detect any ship with guaranteed hit coverage |
+| 2 | B1 | miss | Continue checkerboard pattern search (even parity) to detect ships systematically |
+| 3 | D1 | miss | Continue checkerboard pattern search (even parity) for guaranteed ship detection; next unfired cell is D1 |
+| 4 | F1 | miss | Continue systematic checkerboard pattern search (even parity) to detect ships with guaranteed coverage; F1 has parity (5+1=6, even) |
+| 5 | C2 | hit | Continue Phase 1 checkerboard pattern search at next even-parity cell to detect ships systematically |
+| 6 | C1 | miss | Phase 2: Check adjacent cell above the C2 hit to determine ship orientation (vertical vs horizontal) |
+| 7 | C3 | miss | Phase 2: Check cell directly below the C2 hit to determine if ship extends vertically downward (adjacent cell testing after C1 miss above) |
+| 8 | B2 | miss | Phase 2: Check horizontal adjacency to C2 hit; A2 was miss so if B2 is also miss, ship extends only rightward from C2 |
+| 9 | D2 | hit | Only untested adjacent to hit C2; must be part of horizontal ship since C1, C3, B2 are all misses |
+| 10 | E2 | sunk Submarine | Extend horizontally right from D2 hit to determine full extent of the ship in row 2 |
+| 11 | A4 | miss | Continue Phase 1 checkerboard pattern search (column A=0, row 4; parity 0+4=4 even) to systematically locate remaining ships |
+| 12 | H1 | miss | Continue Phase 1 checkerboard pattern (even parity: 7+1=8) to systematically locate remaining ships |
+| 13 | C4 | miss | Continue Phase 1 checkerboard pattern search (even parity: column C=2, row 4; 2+4=6 even) to systematically locate remaining four ships |
+| 14 | B3 | miss | Continue Phase 1 checkerboard pattern search (even parity: 1+3=4) to systematically locate remaining 4 ships |
+| 15 | J1 | miss | Continue Phase 1 checkerboard pattern search (even parity: J=9, row 1; 9+1=10 even) to systematically locate remaining ships |
+| 16 | G2 | miss | Continue checkerboard pattern (even parity: G=6, row 2, sum=8 even) to systematically detect remaining ships |
+| 17 | B5 | miss | Continue systematic checkerboard pattern search (even parity) to locate remaining ships; B5 is next unfired even-parity cell in left-to-right, top-to-bottom order. |
+| 18 | A6 | miss | Continue Phase 1 checkerboard pattern search (even parity: A=0, row 6; 0+6=6 even) to systematically locate remaining 4 ships |
+| 19 | D3 | miss | Continue Phase 1 checkerboard pattern search (even parity: D=3, row 3; 3+3=6 even) to systematically locate remaining 4 ships. |
+| 20 | I2 | miss | Continue Phase 1 checkerboard pattern search (even parity: I=8, row 2; 8+2=10 even) to systematically detect remaining ships. |
+| 21 | A1 | miss | Shift to odd-parity cells in Phase 1 checkerboard to systematically locate remaining ships; A1 is the first unfired odd-parity cell in order. |
+| 22 | E1 | miss | Continue Phase 1 checkerboard pattern with odd-parity cells (column E=4, row 1; 4+1=5 odd) to systematically detect remaining 4 ships |
+| 23 | G1 | miss | Continue Phase 1 odd-parity checkerboard pattern (column G=6, row 1; 6+1=7 odd) to systematically detect remaining ships |
+| 24 | F2 | miss | Continue systematic odd-parity checkerboard pattern to detect remaining 4 ships; F2 (column F=5, row 2; parity 7 odd) is the next unfired cell in the logical search sequence. |
+| 25 | I1 | miss | Continue odd-parity checkerboard pattern to systematically detect remaining 4 ships in unexplored areas |
+| 26 | H2 | miss | Continue systematic checkerboard (odd parity) to complete row 2 search and detect any remaining ships in explored region before moving to deeper rows |
+| 27 | F3 | miss | Continue systematic checkerboard pattern (even parity: F=5, row 3; 5+3=8 even) to detect remaining 4 ships in unexplored rows |
+| 28 | J3 | miss | Continue systematic search in row 3, focusing on right-side unknown cells where large ships likely hide |
+| 29 | E4 | miss | Continue systematic even-parity checkerboard pattern to detect remaining ships in unexplored rows; E4 (column E=4, row 4; parity 8 even) is the next logical cell in left-to-right, top-to-bottom order. |
+| 30 | A5 | miss | Continue systematic checkerboard search (odd parity) moving into row 5 where remaining 4 large ships must be located; A5 is the next logical cell in ordered search |
+| 31 | A3 | miss | Continue systematic checkerboard pattern (odd parity) in row 3 to locate remaining 4 ships before moving to lower rows where large ships likely hide |
+| 32 | B4 | miss | Continue systematic search in row 4 where most cells remain unexplored; B4 is the first unknown cell after the A4 miss in an ordered search pattern. |
+| 33 | B7 | miss | Continue systematic checkerboard pattern search in unexplored row 7 to locate remaining 4 ships; B7 has even parity (1+7=8) |
+| 34 | D4 | miss | Continue systematic search in row 4; D4 is unknown and part of the logical progression through unexplored cells where remaining large ships must be hiding |
+| 35 | E3 | miss | Continue systematic row 3 exploration to detect remaining ships; E3 is an unknown cell that completes coverage of row 3 |
+| 36 | J2 | miss | Continue systematic search through unexplored cells; J2 is the only remaining unknown in row 2 and likely to contain a ship endpoint or isolated cell |
+| 37 | E8 | miss | Extend search into rows 8-10 where most ships likely remain hidden; E8 continues systematic coverage of the unexplored deep board region |
+| 38 | G3 | hit | Extend search into right side of row 3 where most unknown cells remain; large ships likely hiding in unexplored region |
+| 39 | G4 | hit | Phase 2: Test cell directly below G3 hit to determine ship orientation (vertical vs horizontal) |
+| 40 | G5 | hit | Extend vertical line from G3-G4 downward to find ship extent and determine if it's a Destroyer(2) or larger ship |
+| 41 | G6 | hit | Test if the G3-G4-G5 vertical ship extends downward to determine if it's a 3-cell Cruiser or a larger 4+ cell ship |
+| 42 | G7 | sunk Carrier | Test if the vertical hit line G3-G4-G5-G6 extends downward to determine if it's the Battleship(4) or Carrier(5) |
+| 43 | H3 | miss | Check if any remaining ship extends horizontally adjacent to the sunk Carrier in row 3 |
+| 44 | F4 | miss | Systematic exploration of unknown cells adjacent to sunk Carrier region; F4 remains unknown and could be part of Battleship or Cruiser |
+| 45 | H4 | miss | Systematic exploration of unknown cells adjacent to sunk Carrier region in row 4; checking if Battleship(4) or Cruiser(3) extends horizontally near previous hit area |
+| 46 | I4 | miss | Continue systematic exploration of right-side unknowns in rows 3-7; I4 has even parity and is in concentrated region where remaining ships must hide |
+| 47 | H5 | miss | Systematic exploration of unknown cells in row 5, continuing Phase 1 checkerboard-like search in unexplored region adjacent to previous hit area where remaining Battleship, Cruiser, and Destroyer must be hiding. |
+| 48 | C5 | miss | Systematic exploration of row 5 unknown cells adjacent to previously sunk Submarine region where remaining Battleship or Cruiser likely extends |
+| 49 | I3 | miss | Systematic exploration of remaining unknowns in row 3; I3 is the only unknown cell in row 3 and could contain part of Battleship, Cruiser, or Destroyer |
+| 50 | J5 | miss | Continue systematic exploration of row 5 unknowns on the right side where Battleship, Cruiser, or Destroyer likely remain hidden. |
+| 51 | D5 | miss | Systematic search in the middle of the largest unexplored cluster (D5-F5 in row 5, D6-F6 in row 6) where Battleship, Cruiser, or Destroyer likely hide. |
+| 52 | E6 | miss | Continue systematic search in row 6 where 3 large remaining ships must hide; E6 (even parity) is next logical cell in unexplored cluster |
+| 53 | E5 | miss | Continue systematic exploration of the concentrated unknown cluster in rows 5-7 (D-F columns) where remaining Battleship, Cruiser, or Destroyer most likely hide |
+| 54 | A8 | miss | Shift focus to the massive unexplored bottom region (rows 8-10) where 3 large ships likely hide; systematic left-to-right, top-to-bottom search from row 8. |
+| 55 | B9 | miss | Shift to systematically search rows 9-10 where 3 remaining large ships (Battleship, Cruiser, Destroyer totaling 9 cells) likely hide; B9 continues ordered left-to-right, top-to-bottom sweep. |
+| 56 | C8 | miss | Continue systematic left-to-right, top-to-bottom exploration of rows 8-10 where 9 remaining cells must hide Battleship(4), Cruiser(3), Destroyer(2) |
+| 57 | D8 | miss | Continue systematic left-to-right sweep through unexplored rows 8-10 where 9 remaining ship cells likely hide |
+| 58 | A10 | miss | Continue systematic left-to-right, top-to-bottom search through completely unexplored row 10 where 9 remaining ship cells must hide |
+| 59 | B10 | miss | Continue systematic left-to-right, top-to-bottom search through completely unexplored row 10 where remaining 9 ship cells must hide |
+| 60 | F8 | miss | Systematically search row 8 where 9 remaining ship cells must hide; F8 continues left-to-right exploration of mostly unexplored bottom region. |
+| 61 | G8 | miss | Continue systematic left-to-right sweep through row 8 where 9 remaining ship cells must hide; G8 is the next unknown after F8. |
+| 62 | H8 | miss | Continue systematic left-to-right search through row 8 where 9 remaining ship cells must hide; H8 is the next unknown cell after the G8 miss. |
+| 63 | C9 | miss | Continue systematic left-to-right sweep through completely unexplored row 9 where 9 remaining ship cells must hide |
+| 64 | D9 | miss | Continue systematic left-to-right, top-to-bottom search through row 9 where 9 remaining ship cells must be distributed; D9 is the next unknown cell. |
+| 65 | I8 | miss | Continue systematic left-to-right search through unexplored row 8 right side where 9 remaining ship cells must hide |
+| 66 | F5 | miss | Continue systematic left-to-right exploration in row 5 where 9 remaining ship cells must be hidden; F5 is an unknown cell adjacent to the sunk Carrier region |
+| 67 | I6 | hit | Continue systematic left-to-right search through unexplored row 6 where 9 remaining ship cells must hide |
+| 68 | I5 | miss | Phase 2 response to unresolved I6 hit: test vertical neighbor above to determine ship orientation |
+| 69 | I7 | sunk Destroyer | Phase 2: Test cell directly below I6 hit to determine ship orientation (vertical vs horizontal) and identify which remaining ship this is. |
+| 70 | E9 | hit | Continue systematic bottom-row search (row 9 is largely unexplored) where 7 remaining cells of Battleship(4) and Cruiser(3) must hide; E9 is in the most concentrated unknown cluster |
+| 71 | E10 | miss | Test if E9 hit extends downward to resolve ship orientation for remaining Battleship or Cruiser |
+| 72 | F9 | hit | Test horizontal extension from E9 hit to determine if remaining ship (Battleship or Cruiser) extends rightward |
+| 73 | G9 | hit | E9-F9 are consecutive hits in row 9; extending right to G9 will determine if this is the Battleship (4) or Cruiser (3) and reveal its full extent |
+| 74 | H9 | sunk Battleship | Test rightward extension of E9-F9-G9 hit sequence to determine if it's the 4-cell Battleship or 3-cell Cruiser and resolve the last remaining ship |
+| 75 | B6 | miss | Systematically search the concentrated unknown cluster in row 6 (B6-D6, F6) where the remaining 3-cell Cruiser is likely hidden among the 16 remaining unknowns |
+| 76 | C6 | miss | Search concentrated unknown cluster in rows 6-7 where the remaining Cruiser is most likely hiding |
+| 77 | E7 | miss | E7 is the only untested cell in the concentrated unknown cluster (row 7, columns D-F) where the remaining 3-cell Cruiser is most likely hiding given the pattern of misses around it. |
+| 78 | D6 | miss | Continue systematic search for the remaining 3-cell Cruiser in the concentrated unknown cluster around rows 6-7 |
+| 79 | F6 | miss | F6 is an unknown cell in the concentrated region where the Cruiser likely hides, adjacent to previously explored areas and sunk ships |
+| 80 | H6 | miss | Test this unknown cell in row 6, a promising area for the remaining 3-cell Cruiser given the concentrated unknowns and previous ship placements |
+| 81 | J6 | miss | Test for a potential vertical 3-cell Cruiser in column J (J6-J7-J8 are all unknown and adjacent) |
+| 82 | J7 | miss | Test the vertical column J sequence (J7-J10) where a 3-cell Cruiser is most likely to be concentrated among the 7 remaining unknowns |
+| 83 | A7 | miss | Test the row 7 cluster (A7, C7, D7, F7) where the 3-cell Cruiser is most likely hiding among the 7 remaining unknowns |
+| 84 | J8 | hit | Test the consecutive vertical sequence J8-J9-J10 as the most likely location for the remaining 3-cell Cruiser |
+| 85 | J9 | hit | Adjacent to the J8 hit to determine if the Cruiser extends vertically downward in column J |
+| 86 | J10 | sunk Cruiser | Complete the vertical Cruiser in column J by testing the adjacent cell below J9; J7 miss above confirms the ship extends downward from J8-J9 |
+
+## Board 37 · 49 shots
+
+| # | Cell | Result | Reasoning |
+|---|---|---|---|
+| 1 | A2 | hit | Begin checkerboard pattern (even parity cells) to search for ships efficiently |
+| 2 | A1 | miss | Check if ship extends upward from A2 to determine orientation |
+| 3 | A3 | hit | Check if the ship at A2 extends downward to determine orientation (vertical vs horizontal) |
+| 4 | A4 | hit | Extend downward from confirmed vertical hits at A2-A3 to determine ship length and sink it |
+| 5 | A5 | hit | Continue firing downward from the confirmed vertical hit sequence at A2-A3-A4 to determine the full extent of this ship |
+| 6 | A6 | sunk Battleship | Extend downward from A5 to determine if the vertical ship in column A is the Carrier(5) or Battleship(4) |
+| 7 | B1 | miss | Continue checkerboard pattern (even parity) to search for remaining ships after sinking Battleship |
+| 8 | B2 | hit | Continue checkerboard pattern (even parity) to systematically search for remaining 4 ships |
+| 9 | C2 | hit | Determine orientation of the ship hit at B2 by testing the horizontal direction (right), since B1 was a miss (left) and A2 is the sunk Battleship |
+| 10 | D2 | hit | Continue the horizontal hit sequence at B2-C2 by firing right to identify the ship's full extent and size |
+| 11 | E2 | sunk Carrier | Extend the horizontal hit line B2-C2-D2 rightward to determine the full extent and identity of this ship |
+| 12 | C1 | miss | Continue checkerboard pattern (even parity) to systematically search for the three remaining ships (Cruiser, Submarine, Destroyer) |
+| 13 | D3 | miss | Continue systematic search for remaining 3 ships (Cruiser, Submarine, Destroyer) using efficient coverage pattern |
+| 14 | B3 | miss | Continue checkerboard pattern (even parity) to search for remaining 3 ships (Cruiser, Submarine, Destroyer) in unexplored region |
+| 15 | C4 | miss | Continue checkerboard pattern (even parity) to search for remaining 3 ships in unexplored region |
+| 16 | F1 | miss | Continue checkerboard pattern (even parity) to search for remaining 3 ships in the right portion of the board |
+| 17 | G2 | miss | Continue checkerboard (even parity) pattern to search for remaining 3 ships (Cruiser, Submarine, Destroyer) |
+| 18 | E1 | miss | Continue checkerboard pattern (even parity) in unexplored upper region to search for remaining 3 ships |
+| 19 | D1 | miss | Continue checkerboard pattern (even parity) in upper unexplored region to locate remaining Cruiser, Submarine, or Destroyer |
+| 20 | G3 | miss | Continue systematic search for remaining ships (Cruiser, Submarine, Destroyer) in the large unexplored region using checkerboard pattern. |
+| 21 | F3 | miss | Continue checkerboard (even parity) pattern in unexplored region to systematically search for remaining Cruiser, Submarine, or Destroyer |
+| 22 | H3 | miss | Continue checkerboard pattern (even parity) in unexplored right-center region to systematically search for remaining Cruiser, Submarine, or Destroyer |
+| 23 | E4 | hit | Continue checkerboard (even parity) pattern into unexplored rows 4-10 to locate remaining Cruiser, Submarine, or Destroyer ships. |
+| 24 | E5 | hit | Test orthogonal adjacent to unresolved hit E4 to determine ship orientation (vertical vs horizontal) and extent |
+| 25 | E3 | sunk Cruiser | Test upward from E4-E5 hits to determine the vertical ship's full extent and identify whether it is Destroyer(2), Submarine(3), or Cruiser(3) |
+| 26 | H1 | miss | Continue checkerboard (even parity) pattern in upper unexplored region to search for remaining Submarine(3) and Destroyer(2) |
+| 27 | G4 | miss | Continue checkerboard (even parity) pattern in unexplored rows 4-10 to systematically locate remaining Submarine(3) and Destroyer(2) ships |
+| 28 | A7 | miss | Continue systematic search in unexplored lower region to locate remaining Submarine(3) or Destroyer(2) ships |
+| 29 | B8 | miss | Continue systematic search in unexplored lower rows (8-10) for remaining Submarine(3) and Destroyer(2) |
+| 30 | B5 | miss | Continue checkerboard (even parity: 1+5=6) pattern in row 5, an underexplored region to locate remaining Submarine(3) or Destroyer(2) |
+| 31 | C6 | miss | Continue checkerboard (even parity) pattern in underexplored row 6 to locate remaining Submarine(3) or Destroyer(2) |
+| 32 | D5 | miss | Continue checkerboard (even parity) pattern in underexplored row 5 to locate remaining Submarine(3) or Destroyer(2) |
+| 33 | C8 | miss | Continue checkerboard (even parity: 2+8=10) pattern in unexplored row 8 to systematically locate remaining Submarine(3) or Destroyer(2) |
+| 34 | F9 | hit | Continue checkerboard (even parity: 5+9=14) pattern in unexplored row 9 to systematically locate remaining Submarine(3) and Destroyer(2) |
+| 35 | F8 | miss | Test orthogonal adjacent to F9 hit to determine ship orientation (vertical vs horizontal) for remaining Submarine or Destroyer |
+| 36 | E9 | miss | Test left of F9 hit to determine ship orientation (horizontal vs vertical) for remaining Submarine or Destroyer |
+| 37 | G9 | hit | Determine ship orientation by testing right of unresolved hit at F9; upward and leftward are confirmed misses |
+| 38 | H9 | sunk Submarine | Test if the F9-G9 hit ship extends right to determine if it's the 2-cell Destroyer or 3-cell Submarine |
+| 39 | I2 | miss | Continue systematic search for the 2-cell Destroyer in an underexplored upper-right region using checkerboard pattern (even parity). |
+| 40 | I1 | miss | Upper right region is largely unexplored; checking I1-J1 as potential 2-cell Destroyer location horizontally |
+| 41 | C3 | miss | Continue systematic search for 2-cell Destroyer in row 3, an underexplored region between confirmed hits and misses |
+| 42 | E8 | miss | Continue even-parity checkerboard search in unexplored row 8 for the remaining 2-cell Destroyer |
+| 43 | A10 | miss | Row 10 is completely unexplored; systematically check checkerboard even-parity cells to locate the final 2-cell Destroyer |
+| 44 | J1 | miss | Even-parity checkerboard cell in the upper-right unexplored region to efficiently locate the remaining 2-cell Destroyer |
+| 45 | F5 | miss | Fire at even-parity cell F5 in underexplored middle-right region to systematically locate the remaining 2-cell Destroyer using checkerboard pattern. |
+| 46 | J3 | hit | Even-parity checkerboard cell in upper-right underexplored region to locate the remaining 2-cell Destroyer |
+| 47 | I3 | miss | J3 is a hit; test if Destroyer extends left (I3-J3 horizontal) to sink the final ship |
+| 48 | J4 | miss | J3 is a hit; I3 and J2 are misses; Destroyer must extend vertically downward to J4 to sink it |
+| 49 | J2 | sunk Destroyer | J3 is a hit; I3 and J4 are misses; J2 is the only untested adjacent cell, must contain the Destroyer |
+
