@@ -36,8 +36,10 @@
 |--:|---|--:|--:|--:|
 | 1 | claude-sonnet-5-5 | **1016** | 1 | 1 |
 | 2 | gpt-6.1-sol | **1016** | 1 | 1 |
-| 3 | gpt-6.1-terra | **984** | 0 | 1 |
-| 4 | claude-opus-5-5 | **984** | 0 | 1 |
+| 3 | glm-5.3-flash | **1016** | 1 | 1 |
+| 4 | gpt-6.1-terra | **984** | 0 | 1 |
+| 5 | claude-opus-5-5 | **984** | 0 | 1 |
+| 6 | deepseek-flash | **984** | 0 | 1 |
 
 **Game replays** (strategy, reasoning and every shot per game):
 
@@ -45,6 +47,7 @@
 |---|--:|---|
 | claude-opus-5-5 vs gpt-6.1-sol | 1 | [strategy & shots](results/arena/anthropic_claude-opus-5-5_vs_openrouter_openai_gpt-6.1-sol/games.md) · [boards](results/arena/anthropic_claude-opus-5-5_vs_openrouter_openai_gpt-6.1-sol/overview.svg) |
 | claude-sonnet-5-5 vs gpt-6.1-terra | 1 | [strategy & shots](results/arena/anthropic_claude-sonnet-5-5_vs_openrouter_openai_gpt-6.1-terra/games.md) · [boards](results/arena/anthropic_claude-sonnet-5-5_vs_openrouter_openai_gpt-6.1-terra/overview.svg) |
+| deepseek-flash vs glm-5.3-flash | 1 | [strategy & shots](results/arena/deepseek_deepseek-flash_vs_openrouter_z-ai_glm-5.3-flash/games.md) · [boards](results/arena/deepseek_deepseek-flash_vs_openrouter_z-ai_glm-5.3-flash/overview.svg) |
 
 </details>
 <!-- LEADERBOARD:END -->
